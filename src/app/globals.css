@@ -1,4 +1,55 @@
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Vazirmatn:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
+
+/* Global container constraints to prevent content overflow */
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Ensure all containers respect max-width */
+.max-w-7xl {
+  max-width: 80rem; /* 1280px */
+}
+
+.max-w-8xl {
+  max-width: 88rem; /* 1408px */
+}
+
+/* Hero section image animations */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s ease-out forwards;
+  opacity: 0;
+}
+
+/* Custom shadow for glass effect */
+.shadow-3xl {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25),
+    0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.shadow-4xl {
+  box-shadow: 0 50px 80px -20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 50px rgba(255, 255, 255, 0.1);
+}
+
+.shadow-white\/20 {
+  box-shadow: 0 50px 80px -20px rgba(0, 0, 0, 0.4),
+    0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 50px rgba(255, 255, 255, 0.2),
+    0 0 100px rgba(255, 255, 255, 0.1);
+}
 
 :root {
   --background: #ffffff;
@@ -10,6 +61,9 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-inter: "Inter", sans-serif;
+  --font-poppins: "Poppins", sans-serif;
+  --font-vazirmatn: "Vazirmatn", sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -22,5 +76,34 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: "Vazirmatn", Arial, Helvetica, sans-serif;
+}
+
+/* Custom font classes */
+.font-inter {
+  font-family: "Inter", sans-serif;
+}
+
+.font-poppins {
+  font-family: "Poppins", sans-serif;
+}
+
+.font-vazirmatn {
+  font-family: "Vazirmatn", sans-serif;
+}
+
+.font-geist {
+  font-family: var(--font-geist-sans), sans-serif;
+}
+
+/* Space Theme Animations */
+@keyframes orbit {
+  from {
+    transform: translate(-50%, -50%) rotate(0deg)
+      translateX(var(--orbit-radius, 100px)) rotate(0deg);
+  }
+  to {
+    transform: translate(-50%, -50%) rotate(360deg)
+      translateX(var(--orbit-radius, 100px)) rotate(-360deg);
+  }
 }
