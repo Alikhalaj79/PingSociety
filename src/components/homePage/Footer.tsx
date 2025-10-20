@@ -1,29 +1,38 @@
+import Image from "next/image";
 import { SiGmail } from "react-icons/si";
 import { FaLinkedinIn, FaTelegramPlane } from "react-icons/fa";
 import { FiInstagram } from "react-icons/fi";
 import Container from "../Container";
-import Image from "next/image";
 
 export default function Footer() {
   return (
     <footer className="py-3 sm:py-4 border-t border-white/10">
       <Container className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
-          <div className="mb-4 md:mb-0">
+          <div className="mb-4 md:mb-0 flex items-center gap-4">
             <div className="mb-0 mt-0">
+              <Image
+                src="/logo3.png"
+                alt="PingSociety Logo"
+                width={300}
+                height={100}
+                className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-30 w-auto"
+              />
+            </div>
+            <div>
               <a
-                href="https://trustseal.enamad.ir/?id=662669&Code=Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
+                referrerPolicy="origin"
                 target="_blank"
-                rel="noopener noreferrer"
-                className="inline-block"
+                href="https://trustseal.enamad.ir/?id=662669&Code=Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
               >
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  referrerPolicy="origin"
                   src="https://trustseal.enamad.ir/logo.aspx?id=662669&Code=Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
                   alt="eNamad Trust Seal"
-                  width={200}
-                  height={80}
-                  className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-30 w-auto cursor-pointer"
-                  unoptimized
+                  style={{ cursor: "pointer" }}
+                  data-code="Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
+                  className="h-12 sm:h-14 md:h-16 lg:h-18 xl:h-20 w-auto"
                 />
               </a>
             </div>
