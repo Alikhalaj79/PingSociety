@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { API_CONFIG } from "@/config/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,7 +19,7 @@ export async function GET(request: NextRequest) {
 
     // Call your backend API
     const backendResponse = await fetch(
-      "https://pingsociety.liara.run/ticket/user",
+      `${API_CONFIG.BASE_URL}/ticket/user`,
       {
         method: "GET",
         headers: {

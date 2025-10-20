@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-const BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -12,7 +11,7 @@ export async function GET(request: NextRequest) {
       const refreshToken = request.cookies.get("refresh_token")?.value;
       if (refreshToken) {
         // Attempt refresh using refresh token value
-        const backendUrl = `${BASE_URL}/auth/refresh-token`;
+        const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`;
         const backendResponse = await fetch(backendUrl, {
           method: "POST",
           headers: {
@@ -57,7 +56,7 @@ export async function GET(request: NextRequest) {
             });
             // Try fetching user with the fresh access token and include in response
             try {
-              const meRes = await fetch(`${BASE_URL}/users/me`, {
+              const meRes = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`, {
                 method: "GET",
                 headers: {
                   "Content-Type": "application/json",
@@ -104,7 +103,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Validate token with backend
-    const backendRes = await fetch(`${BASE_URL}/users/me`, {
+    const backendRes = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
@@ -118,7 +117,7 @@ export async function GET(request: NextRequest) {
       // If backend rejects access token but we have a refresh token, try refresh inline
       const refreshToken = request.cookies.get("refresh_token")?.value;
       if (refreshToken) {
-        const backendUrl = `${BASE_URL}/auth/refresh-token`;
+        const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`;
         const backendResponse = await fetch(backendUrl, {
           method: "POST",
           headers: {
@@ -162,7 +161,7 @@ export async function GET(request: NextRequest) {
             });
             // Try fetching user with the fresh access token and include in response
             try {
-              const meRes = await fetch(`${BASE_URL}/users/me`, {
+              const meRes = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`, {
                 method: "GET",
                 headers: {
                   "Content-Type": "application/json",

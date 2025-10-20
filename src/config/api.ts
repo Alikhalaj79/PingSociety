@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: "https://pingsociety.liara.run", // Remove /api from base URL
-  TIMEOUT: 10000, // 10 seconds
+  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run",
+  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000"),
   HEADERS: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -10,19 +10,23 @@ export const API_CONFIG = {
 
 // API Endpoints
 export const API_ENDPOINTS = {
-  // Authentication endpoints (only these exist in backend)
+  // Authentication endpoints
   SEND_OTP: "/auth/send-otp",
   VERIFY_OTP: "/auth/verify-otp",
+  REFRESH_TOKEN: "/auth/refresh-token",
+  LOGOUT: "/auth/logout",
 
-  // User endpoints (if they exist)
-  PROFILE: "/users/me",
-  UPDATE_PROFILE: "/users/update",
+  // User endpoints
+  USER_ME: "/users/me",
+  USER_PROFILE: "/users/profile",
+  USER_ORDERS: "/users/orders",
+  USER_TICKETS: "/users/tickets",
 
-  // Events endpoints (if they exist)
+  // Events endpoints
   EVENTS: "/events",
   EVENT_DETAIL: "/events/:id",
 
-  // Tickets endpoints (if they exist)
+  // Tickets endpoints
   TICKETS: "/tickets",
   PURCHASE_TICKET: "/tickets/purchase",
 } as const;
@@ -31,4 +35,21 @@ export const API_ENDPOINTS = {
 export const ENV = {
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
   IS_PRODUCTION: process.env.NODE_ENV === "production",
+  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run",
+  API_TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000"),
 } as const;
+
+// Helper functions
+export const getApiUrl = (endpoint: string): string => {
+  return `${API_CONFIG.BASE_URL}${endpoint}`;
+};
+
+export const getFullEndpoint = (endpoint: string, params?: Record<string, string>): string => {
+  let url = getApiUrl(endpoint);
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      url = url.replace(`:${key}`, value);
+    });
+  }
+  return url;
+};

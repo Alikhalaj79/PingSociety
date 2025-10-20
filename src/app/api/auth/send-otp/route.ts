@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { apiService } from "@/services/api";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,12 +35,12 @@ export async function POST(request: NextRequest) {
     console.log("✅ Phone validation passed, calling backend API...");
     console.log(
       "🔗 Backend URL:",
-      "https://pingsociety.liara.run/auth/send-otp"
+      `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SEND_OTP}`
     );
 
     // Call your backend API directly with fetch
     const backendResponse = await fetch(
-      "https://pingsociety.liara.run/auth/send-otp",
+      `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SEND_OTP}`,
       {
         method: "POST",
         headers: {

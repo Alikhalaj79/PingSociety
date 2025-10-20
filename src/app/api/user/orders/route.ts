@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { API_CONFIG } from "@/config/api";
 
 export async function GET(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function GET(request: NextRequest) {
     // Get user ID from token or make a separate call to get user info
     // For now, we'll call the orders endpoint directly
     const backendResponse = await fetch(
-      "https://pingsociety.liara.run/order/user",
+      `${API_CONFIG.BASE_URL}/order/user`,
       {
         method: "GET",
         headers: {
