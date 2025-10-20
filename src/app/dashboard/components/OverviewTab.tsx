@@ -2,23 +2,23 @@
 
 import Link from "next/link";
 
-interface User {
-  id: number;
-  phone: string;
-  fullname?: string;
-  email?: string;
-  company?: string;
-  fieldOfActivity?: string;
-  source?: string;
-  role: string;
-  created_at: string;
-  updated_at: string;
-  moderatedEvents: unknown[];
-  tickets: unknown[];
-  orders: unknown[];
-  payments: unknown[];
-  sponsor?: unknown;
-}
+// interface User {
+//   id: number;
+//   phone: string;
+//   fullname?: string;
+//   email?: string;
+//   company?: string;
+//   fieldOfActivity?: string;
+//   source?: string;
+//   role: string;
+//   created_at: string;
+//   updated_at: string;
+//   moderatedEvents: unknown[];
+//   tickets: unknown[];
+//   orders: unknown[];
+//   payments: unknown[];
+//   sponsor?: unknown;
+// }
 
 interface Ticket {
   id: string;

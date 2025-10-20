@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
     console.log("✅ Token found, calling backend API...");
 
     // Call your backend API using BASE_URL + endpoint
-    const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.PROFILE}`;
+    const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`;
     console.log("🔗 Backend URL:", backendUrl);
 
     const backendResponse = await fetch(backendUrl, {

@@ -77,7 +77,7 @@ export default function RegisterForm() {
       } else {
         setError(data.error || "خطا در ارسال کد تایید");
       }
-    } catch (_error) {
+    } catch {
       setError("خطا در ارتباط با سرور");
     } finally {
       setIsLoading(false);

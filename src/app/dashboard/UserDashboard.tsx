@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import Link from "next/link";
@@ -55,9 +55,9 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [activeTab, setActiveTab] = useState<
     "overview" | "tickets" | "profile"
   >("overview");
-  const _router = useRouter();
+  // const _router = useRouter();
 
-  const fetchTicketsAndOrders = async () => {
+  const fetchTicketsAndOrders = useCallback(async () => {
     try {
       // Fetch user tickets
       const ticketsResponse = await fetch("/api/user/tickets", {
@@ -89,9 +89,9 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     } catch (error) {
       console.error("Error fetching tickets and orders:", error);
     }
-  };
+  }, []);
 
-  const fetchUserData = async () => {
+  const fetchUserData = useCallback(async () => {
     try {
       setLoading(true);
 
@@ -119,7 +119,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [fetchTicketsAndOrders]);
 
   useEffect(() => {
     // Only fetch if we don't have initial user data
