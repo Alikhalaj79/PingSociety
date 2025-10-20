@@ -131,7 +131,6 @@ export default function RegisterForm() {
               </button>
             </form>
 
-            
             {/* Back to Home */}
             <div className="mt-4 text-center">
               <Link
