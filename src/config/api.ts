@@ -43,7 +43,10 @@ export const getApiUrl = (endpoint: string): string => {
   return `${API_CONFIG.BASE_URL}${endpoint}`;
 };
 
-export const getFullEndpoint = (endpoint: string, params?: Record<string, string>): string => {
+export const getFullEndpoint = (
+  endpoint: string,
+  params?: Record<string, string>
+): string => {
   let url = getApiUrl(endpoint);
   if (params) {
     Object.entries(params).forEach(([key, value]) => {

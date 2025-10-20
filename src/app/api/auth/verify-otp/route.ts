@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
     );
 
     const body = await request.json();
-    const { phone, otp, otpId } = body;
+    const { phone, otp } = body;
 
     console.log("📱 Received phone:", phone, "OTP:", otp);
     console.log("📋 Request body:", body);
@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
           const [name, value] = nameValue.split("=");
 
           if (name && value) {
-            const cookieOptions: any = {
+            const cookieOptions: Record<string, unknown> = {
               httpOnly: true,
               secure: process.env.NODE_ENV === "production",
               sameSite: "lax",

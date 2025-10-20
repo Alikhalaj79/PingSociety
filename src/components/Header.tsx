@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useAuthContext } from "@/providers/AuthProvider";
 
 export default function Header() {
-  const { isAuthenticated, user, isLoading } = useAuthContext();
+  const { isAuthenticated, isLoading } = useAuthContext();
 
   return (
     <header className="bg-[#080358] shadow-lg sticky top-0 z-50">

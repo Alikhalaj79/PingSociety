@@ -13,11 +13,11 @@ interface User {
   role: string;
   created_at: string;
   updated_at: string;
-  moderatedEvents: any[];
-  tickets: any[];
-  orders: any[];
-  payments: any[];
-  sponsor?: any;
+  moderatedEvents: unknown[];
+  tickets: unknown[];
+  orders: unknown[];
+  payments: unknown[];
+  sponsor?: unknown;
 }
 
 interface Ticket {
@@ -28,13 +28,13 @@ interface Ticket {
   qrCode?: string;
 }
 
-interface Order {
-  id: string;
-  eventTitle: string;
-  totalAmount: number;
-  status: "pending" | "confirmed" | "cancelled";
-  createdAt: string;
-}
+// interface Order {
+//   id: string;
+//   eventTitle: string;
+//   totalAmount: number;
+//   status: "pending" | "confirmed" | "cancelled";
+//   createdAt: string;
+// }
 
 interface OverviewTabProps {
   tickets: Ticket[];

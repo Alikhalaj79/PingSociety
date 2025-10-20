@@ -19,11 +19,11 @@ interface User {
   role: string;
   created_at: string;
   updated_at: string;
-  moderatedEvents: any[];
-  tickets: any[];
-  orders: any[];
-  payments: any[];
-  sponsor?: any;
+  moderatedEvents: unknown[];
+  tickets: unknown[];
+  orders: unknown[];
+  payments: unknown[];
+  sponsor?: unknown;
 }
 
 interface Ticket {
@@ -49,13 +49,13 @@ interface UserDashboardProps {
 export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [user, setUser] = useState<User | null>(initialUser || null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
+  const [, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(!initialUser);
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<
     "overview" | "tickets" | "profile"
   >("overview");
-  const router = useRouter();
+  const _router = useRouter();
 
   useEffect(() => {
     // Only fetch if we don't have initial user data
@@ -65,7 +65,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
       // Still fetch tickets and orders
       fetchTicketsAndOrders();
     }
-  }, [initialUser]);
+  }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
 
   const fetchTicketsAndOrders = async () => {
     try {
@@ -191,7 +191,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id as "overview" | "tickets" | "profile")}
               className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                 activeTab === tab.id
                   ? "bg-[#F84920] text-white"

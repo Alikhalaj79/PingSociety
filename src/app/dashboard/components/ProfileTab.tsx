@@ -14,11 +14,11 @@ interface User {
   role: string;
   created_at: string;
   updated_at: string;
-  moderatedEvents: any[];
-  tickets: any[];
-  orders: any[];
-  payments: any[];
-  sponsor?: any;
+  moderatedEvents: unknown[];
+  tickets: unknown[];
+  orders: unknown[];
+  payments: unknown[];
+  sponsor?: unknown;
 }
 
 interface ProfileTabProps {

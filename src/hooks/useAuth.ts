@@ -14,11 +14,11 @@ interface User {
   role: string;
   created_at: string;
   updated_at: string;
-  moderatedEvents: any[];
-  tickets: any[];
-  orders: any[];
-  payments: any[];
-  sponsor?: any;
+  moderatedEvents: unknown[];
+  tickets: unknown[];
+  orders: unknown[];
+  payments: unknown[];
+  sponsor?: unknown;
 }
 
 interface AuthState {
@@ -166,7 +166,7 @@ export function useAuth() {
       } catch {}
       checkAuth();
     }
-  }, []);
+  }, [checkAuth]);
 
   useEffect(() => {
     checkAuth();
@@ -198,7 +198,6 @@ export function useAuth() {
         onAuthChanged as EventListener
       );
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [checkAuth]);
 
   return {

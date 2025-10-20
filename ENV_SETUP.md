@@ -11,6 +11,7 @@ NEXT_PUBLIC_API_URL=https://pingsociety.liara.run
 ## Environment Variables Explained
 
 ### `NEXT_PUBLIC_API_URL`
+
 - **Purpose**: Base URL for your backend API
 - **Default**: `https://pingsociety.liara.run`
 - **Usage**: Used in all API calls to your backend
