@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Call your backend API using BASE_URL + endpoint
-    const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.PROFILE}`;
+    const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_PROFILE}`;
     console.log("🔗 Backend URL:", backendUrl);
 
     const backendResponse = await fetch(backendUrl, {
