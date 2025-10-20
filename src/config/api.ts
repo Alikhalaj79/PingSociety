@@ -1,7 +1,7 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run",
-  TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000"),
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "https://pingsociety.liara.run",
+  TIMEOUT: 10000,
   HEADERS: {
     "Content-Type": "application/json",
     Accept: "application/json",
@@ -35,8 +35,7 @@ export const API_ENDPOINTS = {
 export const ENV = {
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
   IS_PRODUCTION: process.env.NODE_ENV === "production",
-  API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run",
-  API_TIMEOUT: parseInt(process.env.NEXT_PUBLIC_API_TIMEOUT || "10000"),
+  API_URL: process.env.NEXT_PUBLIC_API_URL || "https://pingsociety.liara.run",
 } as const;
 
 // Helper functions
