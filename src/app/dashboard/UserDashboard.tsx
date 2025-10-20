@@ -57,16 +57,6 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
   >("overview");
   const _router = useRouter();
 
-  useEffect(() => {
-    // Only fetch if we don't have initial user data
-    if (!initialUser) {
-    fetchUserData();
-    } else {
-      // Still fetch tickets and orders
-      fetchTicketsAndOrders();
-    }
-  }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
-
   const fetchTicketsAndOrders = async () => {
     try {
       // Fetch user tickets
@@ -131,6 +121,16 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     }
   };
 
+  useEffect(() => {
+    // Only fetch if we don't have initial user data
+    if (!initialUser) {
+      fetchUserData();
+    } else {
+      // Still fetch tickets and orders
+      fetchTicketsAndOrders();
+    }
+  }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
+
   if (loading) {
     return (
       <Container>
@@ -191,7 +191,9 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as "overview" | "tickets" | "profile")}
+              onClick={() =>
+                setActiveTab(tab.id as "overview" | "tickets" | "profile")
+              }
               className={`px-6 py-3 rounded-lg font-medium transition-colors ${
                 activeTab === tab.id
                   ? "bg-[#F84920] text-white"
