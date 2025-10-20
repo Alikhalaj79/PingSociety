@@ -1,16 +1,8 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+import { ReduxProvider } from "@/providers/ReduxProvider";
+import { AuthProvider } from "@/providers/AuthProvider";
+import { AuthInitializer } from "@/components/AuthInitializer";
 
 export const metadata: Metadata = {
   title: "PingSociety | دورهمی بچه های Tech",
@@ -24,11 +16,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        {children}
+    <html lang="fa">
+      <body className="antialiased">
+        <ReduxProvider>
+          <AuthProvider>
+            <AuthInitializer />
+            {children}
+          </AuthProvider>
+        </ReduxProvider>
       </body>
     </html>
   );
