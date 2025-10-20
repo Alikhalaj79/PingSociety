@@ -7,7 +7,7 @@ import { AuthInitializer } from "@/components/AuthInitializer";
 export const metadata: Metadata = {
   title: "PingSociety | دورهمی بچه های Tech",
   description:
-    "کامیونیتی تخصصی برای علاقهمندان و فعالان حوزه فناوری. هدف ما ایجاد بستری برای شبکهسازی، به اشتراکگذاری تجربهها و کشف فرصتهای جدید در جامعهی تکنولوژی است.",
+    "کامیونیتی تخصصی برای علاقه مندان و فعالان حوزه فناوری. هدف ما ایجاد بستری برای شبکه سازی، به اشتراک گذاری تجربه ها و کشف فرصتهای جدید در جامعهی تکنولوژی است.",
 };
 
 export default function RootLayout({
