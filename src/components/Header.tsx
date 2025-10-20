@@ -2,8 +2,11 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useAuthContext } from "@/providers/AuthProvider";
 
 export default function Header() {
+  const { isAuthenticated, user, isLoading } = useAuthContext();
+
   return (
     <header className="bg-[#080358] shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
@@ -20,13 +23,23 @@ export default function Header() {
             />
           </div>
 
-          {/* Login/Register button - Right side */}
+          {/* Login/Register button or User Profile - Right side */}
           <div className="flex items-center">
-            <Link href="/register">
-              <button className="bg-[#f84920] text-white px-4 py-2 sm:px-6 sm:py-2 rounded-lg hover:bg-[#e63e1a] transition-colors duration-200 font-medium cursor-pointer text-sm sm:text-base">
-                ثبت نام / ورود
-              </button>
-            </Link>
+            {isLoading ? (
+              <div className="animate-pulse bg-white/20 h-8 w-24 rounded-lg"></div>
+            ) : isAuthenticated ? (
+              <Link href="/dashboard">
+                <button className="bg-[#f84920] text-white px-4 py-2 sm:px-6 sm:py-2 rounded-lg hover:bg-[#e63e1a] transition-colors duration-200 font-medium cursor-pointer text-sm sm:text-base">
+                  پنل کاربری
+                </button>
+              </Link>
+            ) : (
+              <Link href="/register">
+                <button className="bg-[#f84920] text-white px-4 py-2 sm:px-6 sm:py-2 rounded-lg hover:bg-[#e63e1a] transition-colors duration-200 font-medium cursor-pointer text-sm sm:text-base">
+                  ثبت نام / ورود
+                </button>
+              </Link>
+            )}
           </div>
         </div>
       </div>
