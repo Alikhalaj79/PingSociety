@@ -48,7 +48,7 @@ export default function Gallery() {
     },
     [
       (slider) => {
-        let timeout;
+        let timeout: NodeJS.Timeout;
         function clearNextTimeout() {
           clearTimeout(timeout);
         }
