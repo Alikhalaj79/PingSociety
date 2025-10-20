@@ -1,4 +1,5 @@
-import { API_CONFIG } from "@/config/api";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_API_BASE_URL || "https://pingsociety.liara.run";
 
 // Server-side auth functions
 export async function getServerSideAuth(context: {
@@ -24,7 +25,7 @@ export async function getServerSideAuth(context: {
 
   try {
     // Verify token with your API using the correct endpoint
-    const response = await fetch(`${API_CONFIG.BASE_URL}/users/me`, {
+    const response = await fetch(`${BASE_URL}/users/me`, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
