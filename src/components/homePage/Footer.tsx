@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { SiGmail } from "react-icons/si";
 import { FaLinkedinIn, FaTelegramPlane } from "react-icons/fa";
 import { FiInstagram } from "react-icons/fi";
@@ -11,13 +10,21 @@ export default function Footer() {
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           <div className="mb-4 md:mb-0">
             <div className="mb-0 mt-0">
-              <Image
-                src="/logo3.png"
-                alt="PingSociety Logo"
-                width={300}
-                height={100}
-                className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-30 w-auto"
-              />
+              <a 
+                referrerPolicy="origin" 
+                target="_blank" 
+                href="https://trustseal.enamad.ir/?id=662669&Code=Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
+                className="inline-block"
+              >
+                <img 
+                  referrerPolicy="origin" 
+                  src="https://trustseal.enamad.ir/logo.aspx?id=662669&Code=Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ" 
+                  alt="eNamad Trust Seal" 
+                  style={{cursor: 'pointer'}} 
+                  code="Cm1S5DgXslvJgpW8e6YwJFXvK9J21gAZ"
+                  className="h-16 sm:h-20 md:h-24 lg:h-28 xl:h-30 w-auto"
+                />
+              </a>
             </div>
           </div>
 
