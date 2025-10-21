@@ -59,16 +59,41 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     try {
       const formData = new FormData(e.currentTarget);
       const profileData = {
-        fullname: formData.get("fullname"),
-        email: formData.get("email"),
-        company: formData.get("company"),
-        fieldOfActivity: formData.get("fieldOfActivity"),
+        fullname: formData.get("fullname") as string,
+        email: formData.get("email") as string,
+        company: formData.get("company") as string,
+        fieldOfActivity: formData.get("fieldOfActivity") as string,
       };
 
-      // TODO: Implement profile update API
-      console.log("Profile update data:", profileData);
+      // Remove empty fields
+      const cleanProfileData = Object.fromEntries(
+        Object.entries(profileData).filter(
+          ([_, value]) => value && value.trim() !== ""
+        )
+      );
 
-      setMessage("پروفایل با موفقیت به‌روزرسانی شد");
+      console.log("Profile update data:", cleanProfileData);
+
+      const response = await fetch(`/api/user/${user.id}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify(cleanProfileData),
+      });
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setMessage("پروفایل با موفقیت به‌روزرسانی شد");
+        // Optionally refresh the page or update local state
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } else {
+        setMessage(result.error || "خطا در به‌روزرسانی پروفایل");
+      }
     } catch (error) {
       console.error("Profile update error:", error);
       setMessage("خطا در به‌روزرسانی پروفایل");

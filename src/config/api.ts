@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   // User endpoints
   USER_ME: "/users/me",
   USER_PROFILE: "/users/profile",
+  USER_UPDATE: "/users/:id",
   USER_ORDERS: "/users/orders",
   USER_TICKETS: "/users/tickets",
 

@@ -54,7 +54,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [error, setError] = useState("");
   const [activeTab, setActiveTab] = useState<
     "overview" | "tickets" | "profile"
-  >("overview");
+  >("profile");
   // const _router = useRouter();
 
   const fetchTicketsAndOrders = useCallback(async () => {
@@ -185,9 +185,9 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
         {/* Navigation Tabs */}
         <div className="flex flex-wrap justify-center gap-2 mb-8">
           {[
+            { id: "profile", label: "پروفایل" },
             { id: "overview", label: "نمای کلی" },
             { id: "tickets", label: "بلیط‌های من" },
-            { id: "profile", label: "پروفایل" },
           ].map((tab) => (
             <button
               key={tab.id}
