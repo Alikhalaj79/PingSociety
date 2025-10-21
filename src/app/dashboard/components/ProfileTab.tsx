@@ -79,7 +79,7 @@ export default function ProfileTab({ user }: ProfileTabProps) {
       // Remove empty fields
       const cleanProfileData = Object.fromEntries(
         Object.entries(profileData).filter(
-          ([_, value]) => value && value.trim() !== ""
+          ([, value]) => value && value.trim() !== ""
         )
       );
 

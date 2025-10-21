@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import { API_CONFIG } from "@/config/api";
 
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    console.log("🚀 User Update API called for ID:", params.id);
+    const { id } = await params;
+    console.log("🚀 User Update API called for ID:", id);
 
     // Get token from cookies
     const accessToken = request.cookies.get("access_token")?.value;
@@ -25,7 +26,7 @@ export async function PATCH(
     console.log("📝 Update data:", body);
 
     // Call your backend API using BASE_URL + endpoint
-    const backendUrl = `${API_CONFIG.BASE_URL}/users/${params.id}`;
+    const backendUrl = `${API_CONFIG.BASE_URL}/users/${id}`;
     console.log("🔗 Backend URL:", backendUrl);
 
     const backendResponse = await fetch(backendUrl, {
