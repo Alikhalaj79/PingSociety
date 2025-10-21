@@ -59,11 +59,22 @@ export default function ProfileTab({ user }: ProfileTabProps) {
     try {
       const formData = new FormData(e.currentTarget);
       const profileData = {
+        phone: formData.get("phone") as string,
         fullname: formData.get("fullname") as string,
         email: formData.get("email") as string,
         company: formData.get("company") as string,
         fieldOfActivity: formData.get("fieldOfActivity") as string,
       };
+
+      // Validate phone number if provided
+      if (profileData.phone && profileData.phone.trim() !== "") {
+        const phoneRegex = /^09\d{9}$/;
+        if (!phoneRegex.test(profileData.phone.trim())) {
+          setMessage("شماره موبایل باید با 09 شروع شود و 11 رقم باشد");
+          setIsLoading(false);
+          return;
+        }
+      }
 
       // Remove empty fields
       const cleanProfileData = Object.fromEntries(
@@ -146,13 +157,14 @@ export default function ProfileTab({ user }: ProfileTabProps) {
         <form onSubmit={handleSaveProfile} className="space-y-4">
           <div>
             <label className="block text-white/80 text-sm mb-2">
-              شماره موبایل
+              شماره موبایل (اختیاری)
             </label>
             <input
-              type="text"
-              value={user?.phone || ""}
-              disabled
-              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white/60"
+              type="tel"
+              name="phone"
+              defaultValue={user?.phone || ""}
+              placeholder="شماره موبایل خود را وارد کنید"
+              className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 text-right"
             />
           </div>
 
