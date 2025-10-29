@@ -3,7 +3,9 @@
 import { useState, useEffect } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Container from "@/components/Container";
-import { useAuthContext } from "@/providers/AuthProvider";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import { useAuth } from "@/hooks/useAuth";
+import toast from "react-hot-toast";
 
 export default function OTPForm() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -13,7 +15,7 @@ export default function OTPForm() {
   const [devOtpCode, setDevOtpCode] = useState(""); // For development testing
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { checkAuth } = useAuthContext();
+  const { checkAuth } = useAuth();
 
   useEffect(() => {
     const phone = searchParams.get("phone");
@@ -54,6 +56,19 @@ export default function OTPForm() {
     }
   };
 
+  const handlePaste = (e: React.ClipboardEvent) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").replace(/\D/g, ""); // Remove non-digits
+
+    if (pastedData.length === 6) {
+      const otpArray = pastedData.split("");
+      setOtp(otpArray);
+      // Focus the last input
+      const lastInput = document.getElementById(`otp-5`);
+      lastInput?.focus();
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const otpValue = otp.join("");
@@ -72,27 +87,74 @@ export default function OTPForm() {
     setError("");
 
     try {
-      // Call Next.js API route
+      // Prepare request data
+      const requestData = { phone: phoneNumber, otp: otpValue };
+
+      // Log what we're sending
+      console.log("Sending OTP verification request:", requestData);
+      console.log(
+        "Request URL:",
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`
+      );
+
+      // Use Next.js proxy route to avoid CORS issues
       const response = await fetch("/api/auth/verify-otp", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
-        body: JSON.stringify({ phone: phoneNumber, otp: otpValue }),
+        body: JSON.stringify(requestData),
       });
 
-      const data = await response.json();
+      console.log("Response status:", response.status);
+      console.log(
+        "Response headers:",
+        Object.fromEntries(response.headers.entries())
+      );
 
-      if (data.success) {
-        // Cookies are automatically set by the backend via API route
+      let data;
+      try {
+        data = await response.json();
+        console.log("Response data:", data);
+      } catch (parseError) {
+        console.log("Response is not JSON, getting text:", parseError);
+        const textData = await response.text();
+        console.log("Response text:", textData);
+        data = { error: "Invalid response format from server" };
+      }
+
+      if (response.ok && data.success) {
+        // Cookies are automatically set by the Next.js proxy route
         // No need to manually store tokens in localStorage
 
-        // Successfully verified, redirect to dashboard
+        // Successfully verified, update auth state and redirect to dashboard
+        // Dispatch auth:changed event to notify other components
+        try {
+          window.dispatchEvent(new Event("auth:changed"));
+        } catch {}
+
+        // Check auth status once to update state
         await checkAuth();
+
+        // Show success toast with green background
+        toast.success("وارد حساب کاربری شدید", {
+          style: {
+            background: "#065f46",
+            color: "#fff",
+            border: "1px solid #10b981",
+            borderRadius: "8px",
+          },
+          iconTheme: {
+            primary: "#10b981",
+            secondary: "#fff",
+          },
+        });
+
+        // Redirect to dashboard
         router.push("/dashboard");
       } else {
-        setError(data.error || "کد تایید نامعتبر است");
+        setError(data.message || data.error || "کد تایید نامعتبر است");
       }
     } catch {
       setError("خطا در ارتباط با سرور");
@@ -111,21 +173,24 @@ export default function OTPForm() {
     setError("");
 
     try {
-      const response = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone: phoneNumber }),
-      });
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SEND_OTP}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ phone: phoneNumber }),
+        }
+      );
 
       const data = await response.json();
 
-      if (data.success) {
+      if (response.ok && data.success) {
         // Clear OTP inputs
         setOtp(["", "", "", "", "", ""]);
       } else {
-        setError(data.error || "خطا در ارسال مجدد کد");
+        setError(data.message || data.error || "خطا در ارسال مجدد کد");
       }
     } catch {
       setError("خطا در ارتباط با سرور");
@@ -192,6 +257,11 @@ export default function OTPForm() {
 
             {/* OTP Form */}
             <form onSubmit={handleSubmit} className="space-y-6">
+              {/* Paste instruction */}
+              <p className="text-white/70 text-sm text-center mb-2">
+                کد ۶ رقمی را وارد کنید یا در اولین فیلد paste کنید
+              </p>
+
               {/* OTP Inputs */}
               <div className="flex justify-center gap-4">
                 {otp.map((digit, index) => (
@@ -205,6 +275,7 @@ export default function OTPForm() {
                     value={digit}
                     onChange={(e) => handleOtpChange(index, e.target.value)}
                     onKeyDown={(e) => handleKeyDown(index, e)}
+                    onPaste={index === 0 ? handlePaste : undefined}
                     className="w-12 h-12 text-center text-2xl font-bold bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200"
                     placeholder="0"
                   />

@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { usePathname } from "next/navigation";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import toast from "react-hot-toast";
 
 interface User {
   id: number;
@@ -41,6 +43,7 @@ export function useAuth() {
     try {
       setAuthState((prev) => ({ ...prev, isLoading: true, error: null }));
 
+      // Use Next.js API route to avoid CORS issues
       const response = await fetch("/api/auth/check-auth", {
         method: "GET",
         credentials: "include",
@@ -66,10 +69,13 @@ export function useAuth() {
       } else if (response.status === 401) {
         // Token missing/invalid but refresh may exist; try refresh
         console.log("🔄 Attempting token refresh...");
-        const refreshResponse = await fetch("/api/auth/refresh-token", {
-          method: "POST",
-          credentials: "include",
-        });
+        const refreshResponse = await fetch(
+          `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`,
+          {
+            method: "POST",
+            credentials: "include",
+          }
+        );
         if (refreshResponse.ok) {
           console.log("✅ Token refreshed, re-checking auth");
           await checkAuth();
@@ -102,10 +108,13 @@ export function useAuth() {
 
   const attemptTokenRefresh = useCallback(async () => {
     try {
-      const refreshResponse = await fetch("/api/auth/refresh", {
-        method: "POST",
-        credentials: "include",
-      });
+      const refreshResponse = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.REFRESH_TOKEN}`,
+        {
+          method: "POST",
+          credentials: "include",
+        }
+      );
 
       if (refreshResponse.ok) {
         const refreshData = await refreshResponse.json();
@@ -147,6 +156,7 @@ export function useAuth() {
 
   const logout = useCallback(async () => {
     try {
+      // Use Next.js API route to avoid CORS issues
       await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
@@ -164,27 +174,59 @@ export function useAuth() {
       try {
         window.dispatchEvent(new Event("auth:changed"));
       } catch {}
+
+      // Show logout toast
+      toast("شما از حساب کاربری خود خارج شدید", {
+        icon: "👋",
+        style: {
+          background: "#1a1a2e",
+          color: "#fff",
+          border: "1px solid #6b7280",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#6b7280",
+          secondary: "#fff",
+        },
+      });
+
       checkAuth();
     }
   }, [checkAuth]);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Skip checkAuth on OTP page - user is in the process of authenticating
+    if (pathname !== "/otp") {
+      checkAuth();
+    }
+  }, [checkAuth, pathname]);
 
-  // Re-check auth on route changes
+  // Re-check auth on route changes (except OTP page)
   useEffect(() => {
-    checkAuth();
+    // Skip checkAuth on OTP page - user is in the process of authenticating
+    if (pathname !== "/otp") {
+      checkAuth();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
   // Re-check when the tab gains focus or a global auth event occurs
   useEffect(() => {
-    const onFocus = () => checkAuth();
-    const onVisibility = () => {
-      if (document.visibilityState === "visible") checkAuth();
+    const onFocus = () => {
+      if (pathname !== "/otp") {
+        checkAuth();
+      }
     };
-    const onAuthChanged = () => checkAuth();
+    const onVisibility = () => {
+      if (document.visibilityState === "visible" && pathname !== "/otp") {
+        checkAuth();
+      }
+    };
+    const onAuthChanged = () => {
+      if (pathname !== "/otp") {
+        checkAuth();
+      }
+    };
 
     window.addEventListener("focus", onFocus);
     document.addEventListener("visibilitychange", onVisibility);
@@ -198,7 +240,7 @@ export function useAuth() {
         onAuthChanged as EventListener
       );
     };
-  }, [checkAuth]);
+  }, [checkAuth, pathname]);
 
   return {
     ...authState,
