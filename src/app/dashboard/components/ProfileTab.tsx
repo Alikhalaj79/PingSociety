@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/useAuth";
 
 interface User {
   id: number;
@@ -29,24 +30,22 @@ export default function ProfileTab({ user }: ProfileTabProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const router = useRouter();
+  const { logout } = useAuth();
 
   const handleLogout = async () => {
     try {
       setIsLoading(true);
-      await fetch("/api/auth/logout", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
 
-      // Redirect to home
-      router.push("/");
+      // Call logout from useAuth hook (which handles toast and state)
+      await logout();
+
+      // Wait a bit to show the toast before redirecting
+      setTimeout(() => {
+        router.push("/");
+      }, 1500);
     } catch (error) {
       console.error("Logout error:", error);
       setMessage("خطا در خروج از حساب کاربری");
-    } finally {
       setIsLoading(false);
     }
   };
