@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiService, SendOtpRequest } from "@/services/api";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 
 // Types
 export interface User {
@@ -51,23 +52,32 @@ export const verifyOtp = createAsyncThunk(
     { rejectWithValue }
   ) => {
     try {
-      // Route through Next.js API to set httpOnly cookies
-      const res = await fetch("/api/auth/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ phone, otp, otpId }),
-      });
+      // Call backend API directly
+      const res = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.VERIFY_OTP}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({ phone, otp, otpId }),
+        }
+      );
 
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data?.success) {
-        return rejectWithValue(data?.error || "کد تایید نامعتبر است");
+        return rejectWithValue(
+          data?.message || data?.error || "کد تایید نامعتبر است"
+        );
       }
 
-      // Cookies are set by the API route; we only keep user in state
+      // Store token if provided
+      if (data.token) {
+        localStorage.setItem("auth_token", data.token);
+      }
+
       const user = data.user || null;
-      return { token: null, user, message: data.message };
+      return { token: data.token || null, user, message: data.message };
     } catch {
       return rejectWithValue("خطا در ارتباط با سرور");
     }
@@ -78,8 +88,8 @@ export const initializeAuth = createAsyncThunk(
   "auth/initializeAuth",
   async (_, { rejectWithValue }) => {
     try {
-      // Check auth via server API using cookies
-      const res = await fetch("/api/user/me", {
+      // Check auth via backend API directly
+      const res = await fetch(`${API_CONFIG.BASE_URL}/auth/check-auth`, {
         method: "GET",
         credentials: "include",
       });

@@ -37,7 +37,7 @@ const result = await apiService.verifyOtp({
 
 API configuration is managed in `src/config/api.ts`:
 
-- Base URL: `https://pingsociety.liara.run/api`
+- Base URL: `http://209.38.235.116:3000`
 - Timeout: 10 seconds
 - Default headers for JSON requests
 
@@ -110,12 +110,3 @@ All error messages are in Persian/Farsi and user-friendly:
 - Timeout errors: "درخواست زمان زیادی طول کشید. لطفاً دوباره تلاش کنید."
 - Validation errors: Custom messages from backend
 - Generic errors: "خطای غیرمنتظره‌ای رخ داد. لطفاً دوباره تلاش کنید."
-
-
-
-
-
-
-
-
-

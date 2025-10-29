@@ -4,10 +4,10 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        protocol: 'https',
-        hostname: 'trustseal.enamad.ir',
-        port: '',
-        pathname: '/**',
+        protocol: "https",
+        hostname: "trustseal.enamad.ir",
+        port: "",
+        pathname: "/**",
       },
     ],
   },
