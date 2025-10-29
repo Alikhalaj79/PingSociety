@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
+import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 // No need for React Query - using Next.js API routes
 
 export default function RegisterForm() {
@@ -55,27 +56,45 @@ export default function RegisterForm() {
     setError("");
 
     try {
-      // Call Next.js API route
-      const response = await fetch("/api/auth/send-otp", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ phone: phoneNumber }),
-      });
+      // Call backend API directly
+      const response = await fetch(
+        `${API_CONFIG.BASE_URL}${API_ENDPOINTS.SEND_OTP}`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ phone: phoneNumber }),
+        }
+      );
 
       const data = await response.json();
 
-      if (data.success) {
-        // Store OTP code in localStorage for development testing
-        if (data.backendResponse?.otp) {
-          localStorage.setItem("dev_otp_code", data.backendResponse.otp);
+      // Log the response to see what we're getting from backend
+      console.log("Backend response:", data);
+      console.log("Response status:", response.status);
+
+      // Check if response is successful (200 or 204)
+      if (response.ok && (response.status === 200 || response.status === 204)) {
+        // Store OTP code in localStorage for development testing (if available)
+        // Check different possible field names for OTP code
+        const otpCode =
+          data.otp || data.code || data.otp_code || data.verification_code;
+
+        if (otpCode) {
+          localStorage.setItem("dev_otp_code", otpCode);
+          console.log("OTP code stored:", otpCode);
+        } else {
+          console.log(
+            "No OTP code found in response. Available fields:",
+            Object.keys(data)
+          );
         }
 
-        // Navigate to OTP page with phone number
+        // Always navigate to OTP page when phone number is sent successfully
         router.push(`/otp?phone=${encodeURIComponent(phoneNumber)}`);
       } else {
-        setError(data.error || "خطا در ارسال کد تایید");
+        setError(data.message || data.error || "خطا در ارسال کد تایید");
       }
     } catch {
       setError("خطا در ارتباط با سرور");
