@@ -115,3 +115,66 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    // Get token from cookies
+    const accessToken = request.cookies.get("access_token")?.value;
+    const authToken = request.cookies.get("auth_token")?.value;
+    const token = accessToken || authToken;
+
+    if (!token) {
+      return NextResponse.json(
+        { success: false, error: "احراز هویت مورد نیاز است" },
+        { status: 401 }
+      );
+    }
+
+    const body = await request.json();
+
+    const backendUrl = `${API_CONFIG.BASE_URL}/users/me`;
+
+    const backendResponse = await fetch(backendUrl, {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include",
+      body: JSON.stringify(body),
+    });
+
+    const backendData = await backendResponse.text();
+    let backendJson: any;
+    try {
+      backendJson = JSON.parse(backendData);
+    } catch {
+      return NextResponse.json(
+        { success: false, error: "پاسخ نامعتبر از سرور" },
+        { status: 500 }
+      );
+    }
+
+    if (backendResponse.ok) {
+      return NextResponse.json({
+        success: true,
+        user: backendJson.user || backendJson,
+        message: "پروفایل با موفقیت به‌روزرسانی شد",
+      });
+    }
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: backendJson?.message || "خطا در به‌روزرسانی پروفایل",
+      },
+      { status: backendResponse.status }
+    );
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: "خطا در ارتباط با سرور" },
+      { status: 500 }
+    );
+  }
+}

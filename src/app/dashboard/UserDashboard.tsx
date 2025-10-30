@@ -4,9 +4,9 @@ import { useState, useEffect, useCallback } from "react";
 // import { useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import Link from "next/link";
-import OverviewTab from "./components/OverviewTab";
 import TicketsTab from "./components/TicketsTab";
-import ProfileTab from "./components/ProfileTab";
+import OrdersTab from "./components/OrdersTab";
+import UserInfoSidebar from "./components/UserInfoSidebar";
 
 interface User {
   id: number;
@@ -49,39 +49,53 @@ interface UserDashboardProps {
 export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [user, setUser] = useState<User | null>(initialUser || null);
   const [tickets, setTickets] = useState<Ticket[]>([]);
-  const [, setOrders] = useState<Order[]>([]);
+  const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(!initialUser);
   const [error, setError] = useState("");
-  const [activeTab, setActiveTab] = useState<
-    "overview" | "tickets" | "profile"
-  >("profile");
+  // Tabs removed; show combined content in main area
   // const _router = useRouter();
 
   const fetchTicketsAndOrders = useCallback(async () => {
     try {
-      // Fetch user tickets
-      const ticketsResponse = await fetch("/api/user/tickets", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-      });
+      const loadTickets = async () => {
+        const params = new URLSearchParams(
+          typeof window !== "undefined" ? window.location.search : ""
+        );
+        const eventId = params.get("eventId");
+        const ticketNumber = params.get("ticketNumber");
+        const query = new URLSearchParams();
+        if (eventId) query.set("eventId", eventId);
+        if (ticketNumber) query.set("ticketNumber", ticketNumber);
+        const url = query.toString()
+          ? `/api/user/tickets?${query.toString()}`
+          : "/api/user/tickets";
+        const ticketsResponse = await fetch(url, {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        if (ticketsResponse.ok) {
+          const ticketsData = await ticketsResponse.json();
+          return (ticketsData && ticketsData.tickets) || [];
+        }
+        return [];
+      };
 
-      if (ticketsResponse.ok) {
-        const ticketsData = await ticketsResponse.json();
-        setTickets(ticketsData.tickets || []);
+      // Initial tickets fetch
+      let fetchedTickets = await loadTickets();
+      // If empty (e.g., right after order creation), retry once after a brief delay
+      if (Array.isArray(fetchedTickets) && fetchedTickets.length === 0) {
+        await new Promise((r) => setTimeout(r, 1200));
+        fetchedTickets = await loadTickets();
       }
+      setTickets(fetchedTickets);
 
-      // Fetch user orders
+      // Fetch user orders (kept as-is)
       const ordersResponse = await fetch("/api/user/orders", {
         method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-
       if (ordersResponse.ok) {
         const ordersData = await ordersResponse.json();
         setOrders(ordersData.orders || []);
@@ -126,6 +140,8 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     if (!initialUser) {
       fetchUserData();
     } else {
+      // Sync local state with updated initialUser after refresh
+      setUser(initialUser);
       // Still fetch tickets and orders
       fetchTicketsAndOrders();
     }
@@ -162,6 +178,19 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     );
   }
 
+  const activeTab =
+    (typeof window !== "undefined" &&
+      new URLSearchParams(window.location.search).get("tab")) ||
+    "tickets";
+
+  const setTab = (tab: string) => {
+    try {
+      const url = new URL(window.location.href);
+      url.searchParams.set("tab", tab);
+      window.history.replaceState({}, "", url.toString());
+    } catch {}
+  };
+
   return (
     <Container>
       <div className="py-8" dir="rtl">
@@ -182,34 +211,44 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           </p>
         </div>
 
-        {/* Navigation Tabs */}
-        <div className="flex flex-wrap justify-center gap-2 mb-8">
-          {[
-            { id: "profile", label: "پروفایل" },
-            { id: "overview", label: "نمای کلی" },
-            { id: "tickets", label: "بلیط‌های من" },
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() =>
-                setActiveTab(tab.id as "overview" | "tickets" | "profile")
-              }
-              className={`px-6 py-3 rounded-lg font-medium transition-colors ${
-                activeTab === tab.id
-                  ? "bg-[#F84920] text-white"
-                  : "bg-white/10 text-white/80 hover:bg-white/20"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+        {/* Tabs */}
+        <div className="flex items-center justify-center gap-2 mb-6">
+          <button
+            onClick={() => setTab("tickets")}
+            className={`px-4 py-2 rounded-lg text-sm border ${
+              activeTab === "tickets"
+                ? "bg-white/20 text-white border-white/30"
+                : "text-white/70 border-white/20 hover:bg-white/10"
+            }`}
+          >
+            بلیط‌ها
+          </button>
+          <button
+            onClick={() => setTab("orders")}
+            className={`px-4 py-2 rounded-lg text-sm border ${
+              activeTab === "orders"
+                ? "bg-white/20 text-white border-white/30"
+                : "text-white/70 border-white/20 hover:bg-white/10"
+            }`}
+          >
+            سفارش‌ها
+          </button>
         </div>
 
-        {/* Tab Content */}
-        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-          {activeTab === "overview" && <OverviewTab tickets={tickets} />}
-          {activeTab === "tickets" && <TicketsTab tickets={tickets} />}
-          {activeTab === "profile" && user && <ProfileTab user={user} />}
+        {/* Content + Right Sidebar */}
+        <div className="flex flex-col lg:flex-row gap-6">
+          <div className="lg:w-80 lg:shrink-0">
+            <UserInfoSidebar user={user} />
+          </div>
+          <div className="flex-1">
+            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+              {activeTab === "orders" ? (
+                <OrdersTab orders={orders} />
+              ) : (
+                <TicketsTab tickets={tickets} />
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </Container>

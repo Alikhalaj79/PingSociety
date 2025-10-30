@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Container from "../Container";
-import { apiService } from "@/services/api";
+// import { apiService } from "@/services/api";
 
 interface Event {
   id: string | number;
@@ -37,19 +37,17 @@ export default function Events() {
       setLoading(true);
       setError(null);
 
-      // Fetch from /event endpoint as user specified
-      const response = await apiService.get<Event[] | { events?: Event[] }>(
-        "/event"
-      );
-
-      if (response.success && response.data) {
-        // Handle different response structures
-        const eventsData = Array.isArray(response.data)
-          ? response.data
-          : (response.data as { events?: Event[] }).events || [];
+      // Use Next.js API proxy to avoid CORS/mixed-content
+      const res = await fetch("/api/event", {
+        method: "GET",
+        cache: "no-store",
+      });
+      const json = await res.json();
+      if (res.ok && json?.success) {
+        const eventsData = (json.events as Event[]) || [];
         setEvents(eventsData);
       } else {
-        setError(response.error || "خطا در دریافت رویدادها");
+        setError(json?.error || "خطا در دریافت رویدادها");
       }
     } catch (err) {
       console.error("Error fetching events:", err);

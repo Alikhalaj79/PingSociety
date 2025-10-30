@@ -26,7 +26,7 @@ export async function PATCH(
     console.log("📝 Update data:", body);
 
     // Call your backend API using BASE_URL + endpoint
-    const backendUrl = `${API_CONFIG.BASE_URL}/users/${id}`;
+    const backendUrl = `${API_CONFIG.BASE_URL}/users/me`;
     console.log("🔗 Backend URL:", backendUrl);
 
     const backendResponse = await fetch(backendUrl, {

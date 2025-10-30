@@ -17,19 +17,32 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Optional filters
+    const { searchParams } = new URL(request.url);
+    const eventId = searchParams.get("eventId");
+    const ticketNumber = searchParams.get("ticketNumber");
+
+    let target = `${API_CONFIG.BASE_URL}/ticket/my-tickets`;
+    if (ticketNumber) {
+      target = `${API_CONFIG.BASE_URL}/ticket/my-tickets/${encodeURIComponent(
+        ticketNumber
+      )}`;
+    } else if (eventId) {
+      target = `${
+        API_CONFIG.BASE_URL
+      }/ticket/my-tickets/event/${encodeURIComponent(eventId)}`;
+    }
+
     // Call your backend API
-    const backendResponse = await fetch(
-      `${API_CONFIG.BASE_URL}/ticket/user`,
-      {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        credentials: "include", // Include cookies in the request
-      }
-    );
+    const backendResponse = await fetch(target, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Accept: "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      credentials: "include", // Include cookies in the request
+    });
 
     console.log("🔗 Backend response status:", backendResponse.status);
 
@@ -50,9 +63,17 @@ export async function GET(request: NextRequest) {
 
     if (backendResponse.ok && backendJson) {
       console.log("✅ User tickets fetched successfully");
+      // Normalize various possible shapes into a flat tickets array
+      const normalizedTickets = Array.isArray(backendJson)
+        ? backendJson
+        : backendJson.tickets ??
+          (backendJson.data && (backendJson.data as any).tickets) ??
+          backendJson.data ??
+          (backendJson.items as any) ??
+          [];
       return NextResponse.json({
         success: true,
-        tickets: backendJson.tickets || backendJson || [],
+        tickets: normalizedTickets || [],
         message: "بلیط‌های کاربر با موفقیت دریافت شدند",
       });
     } else {
