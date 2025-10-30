@@ -17,10 +17,9 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Get user ID from token or make a separate call to get user info
-    // For now, we'll call the orders endpoint directly
+    // Fetch current user's orders
     const backendResponse = await fetch(
-      `${API_CONFIG.BASE_URL}/order/user`,
+      `${API_CONFIG.BASE_URL}/order/my-orders`,
       {
         method: "GET",
         headers: {
@@ -28,7 +27,7 @@ export async function GET(request: NextRequest) {
           Accept: "application/json",
           Authorization: `Bearer ${token}`,
         },
-        credentials: "include", // Include cookies in the request
+        cache: "no-store",
       }
     );
 
@@ -51,11 +50,10 @@ export async function GET(request: NextRequest) {
 
     if (backendResponse.ok && backendJson) {
       console.log("✅ User orders fetched successfully");
-      return NextResponse.json({
-        success: true,
-        orders: backendJson.orders || backendJson || [],
-        message: "سفارشات کاربر با موفقیت دریافت شدند",
-      });
+      const normalizedOrders = Array.isArray(backendJson)
+        ? backendJson
+        : backendJson.orders ?? backendJson.data ?? backendJson.items ?? [];
+      return NextResponse.json({ success: true, orders: normalizedOrders });
     } else {
       console.log("❌ Backend API error:", backendJson);
       return NextResponse.json(

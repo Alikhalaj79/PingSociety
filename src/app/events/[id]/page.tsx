@@ -3,13 +3,13 @@
 import { useEffect, useState, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
 import Footer from "@/components/homePage/Footer";
 import { apiService } from "@/services/api";
 
 interface Ticket {
+  id?: string | number;
   price?: number;
   isAvailable?: boolean;
 }
@@ -50,6 +50,76 @@ export default function EventDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
+  const [orderLoading, setOrderLoading] = useState(false);
+
+  const handleRegister = useCallback(async () => {
+    if (!eventId) return;
+    try {
+      setOrderLoading(true);
+      const ticketId =
+        event?.tickets && event.tickets[0] ? event.tickets[0].id : undefined;
+      type OrderResponse = {
+        success?: boolean;
+        status?: string;
+        message?: string;
+        error?: string;
+      };
+      const res = await fetch(`/api/order/create`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify({ eventId, ticketId }),
+        credentials: "include",
+      });
+      let payload: OrderResponse | undefined;
+      try {
+        payload = (await res.json()) as OrderResponse;
+      } catch {
+        payload = undefined;
+      }
+      // Treat any 2xx (e.g., 201 Created) as success, then redirect to dashboard tickets
+      if (res.ok) {
+        // Optional: brief success feedback
+        try {
+          alert("سفارش با موفقیت ایجاد شد");
+        } catch {}
+        const to = `/dashboard?tab=orders${
+          eventId ? `&eventId=${encodeURIComponent(eventId)}` : ""
+        }`;
+        window.location.href = to;
+      } else {
+        // Handle profile incomplete case (422)
+        if (res.status === 422 && payload?.error === "Profile Incomplete") {
+          const missing = Array.isArray(
+            (payload as Record<string, unknown>).missingFields
+          )
+            ? ((payload as Record<string, unknown>).missingFields as string[])
+            : [];
+          const fieldsList = missing.length
+            ? `\n\nفیلدهای ناقص: ${missing.join(", ")}`
+            : "";
+          const goToProfile = confirm(
+            `برای ادامه، ابتدا پروفایل خود را تکمیل کنید.${fieldsList}\n\nمایلید اکنون به صفحه تکمیل پروفایل بروید؟`
+          );
+          if (goToProfile) {
+            const returnTo = encodeURIComponent(`/events/${eventId}`);
+            window.location.href = `/dashboard?tab=profile&return=${returnTo}`;
+            return;
+          }
+        } else {
+          const errMsg =
+            payload?.error || payload?.message || "ایجاد سفارش ناموفق بود";
+          alert(errMsg);
+        }
+      }
+    } catch {
+      alert("خطا در ایجاد سفارش");
+    } finally {
+      setOrderLoading(false);
+    }
+  }, [eventId, event]);
 
   const fetchEventDetail = useCallback(async () => {
     try {
@@ -191,16 +261,8 @@ export default function EventDetailPage() {
         {/* Gradient Overlay */}
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
 
-        {/* Content */}
-        <Container className="relative h-full flex flex-col justify-end pb-12">
-          <div className="flex items-start justify-between flex-wrap gap-4">
-            <div className="flex-1 min-w-0">
-              <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-                {event.title}
-              </h1>
-            </div>
-          </div>
-        </Container>
+        {/* Content (hero overlay title removed as requested) */}
+        <div className="relative h-full flex flex-col justify-end pb-12"></div>
       </section>
 
       {/* Main Content */}
@@ -387,11 +449,13 @@ export default function EventDetailPage() {
                     ثبت نام در رویداد
                   </button>
                 ) : (
-                  <Link href="/register" className="block">
-                    <button className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#f84920]/20">
-                      ثبت نام در رویداد
-                    </button>
-                  </Link>
+                  <button
+                    onClick={handleRegister}
+                    disabled={orderLoading}
+                    className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#f84920]/20 disabled:opacity-60 disabled:hover:scale-100"
+                  >
+                    {orderLoading ? "در حال ثبت..." : "ثبت نام در رویداد"}
+                  </button>
                 )}
 
                 {/* Back Button */}
