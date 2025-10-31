@@ -3,7 +3,7 @@ import { API_CONFIG } from "@/config/api";
 
 export async function GET(request: NextRequest) {
   try {
-    console.log("🚀 User Orders API called");
+    console.log("🚀 Order API called");
 
     // Get token from cookies
     const accessToken = request.cookies.get("access_token")?.value;
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Fetch current user's orders
+    // Fetch current user's orders from backend
     const backendResponse = await fetch(
       `${API_CONFIG.BASE_URL}/order/my-orders`,
       {
@@ -66,8 +66,7 @@ export async function GET(request: NextRequest) {
           ) {
             const event = order.event as Record<string, unknown>;
             if (event.image && typeof event.image === "string") {
-              const imageUrl = event.image.trim();
-              const originalUrl = imageUrl;
+              const imageUrl = event.image;
               // If image URL is relative, convert to absolute
               if (!imageUrl.startsWith("http") && !imageUrl.startsWith("//")) {
                 // Check if it starts with a slash (absolute path)
@@ -77,27 +76,17 @@ export async function GET(request: NextRequest) {
                   // Relative path
                   event.image = `${API_CONFIG.BASE_URL}/${imageUrl}`;
                 }
-              } else {
-                // Already absolute URL, keep it as is
-                event.image = imageUrl;
               }
-              console.log("🖼️ Processed image URL for order", order.id, {
-                original: originalUrl,
-                processed: event.image,
-              });
-            } else {
-              console.log("⚠️ No image found for order", order.id, {
-                hasEvent: !!event,
-                hasImage: !!event?.image,
-                imageType: typeof event?.image,
-              });
             }
           }
           return order;
         }
       );
 
-      return NextResponse.json({ success: true, orders: processedOrders });
+      return NextResponse.json({
+        success: true,
+        orders: processedOrders,
+      });
     } else {
       console.log("❌ Backend API error:", backendJson);
       return NextResponse.json(
@@ -109,7 +98,7 @@ export async function GET(request: NextRequest) {
       );
     }
   } catch (error) {
-    console.error("💥 User Orders API error:", error);
+    console.error("💥 Order API error:", error);
     return NextResponse.json(
       { success: false, error: "خطا در ارتباط با سرور" },
       { status: 500 }

@@ -7,6 +7,7 @@ import Container from "@/components/Container";
 import Header from "@/components/Header";
 import Footer from "@/components/homePage/Footer";
 import { apiService } from "@/services/api";
+import toast from "react-hot-toast";
 
 interface Ticket {
   id?: string | number;
@@ -82,9 +83,7 @@ export default function EventDetailPage() {
       // Treat any 2xx (e.g., 201 Created) as success, then redirect to dashboard tickets
       if (res.ok) {
         // Optional: brief success feedback
-        try {
-          alert("سفارش با موفقیت ایجاد شد");
-        } catch {}
+        toast.success("سفارش با موفقیت ایجاد شد");
         const to = `/dashboard?tab=orders${
           eventId ? `&eventId=${encodeURIComponent(eventId)}` : ""
         }`;
@@ -111,11 +110,11 @@ export default function EventDetailPage() {
         } else {
           const errMsg =
             payload?.error || payload?.message || "ایجاد سفارش ناموفق بود";
-          alert(errMsg);
+          toast.error(errMsg);
         }
       }
     } catch {
-      alert("خطا در ایجاد سفارش");
+      toast.error("خطا در ایجاد سفارش");
     } finally {
       setOrderLoading(false);
     }
@@ -131,18 +130,22 @@ export default function EventDetailPage() {
 
       if (response.success && response.data) {
         setEvent(response.data);
-      } else {
-        // Try alternative endpoint
-        const altResponse = await apiService.get<Event>(`/events/${eventId}`);
-        if (altResponse.success && altResponse.data) {
-          setEvent(altResponse.data);
         } else {
-          setError(response.error || altResponse.error || "رویداد یافت نشد");
+          // Try alternative endpoint
+          const altResponse = await apiService.get<Event>(`/events/${eventId}`);
+          if (altResponse.success && altResponse.data) {
+            setEvent(altResponse.data);
+          } else {
+            const errorMsg = response.error || altResponse.error || "رویداد یافت نشد";
+            setError(errorMsg);
+            toast.error(errorMsg);
+          }
         }
-      }
     } catch (err) {
       console.error("Error fetching event:", err);
-      setError("خطا در ارتباط با سرور");
+      const errorMessage = "خطا در ارتباط با سرور";
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }

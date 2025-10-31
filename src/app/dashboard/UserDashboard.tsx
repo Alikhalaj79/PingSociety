@@ -4,8 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 // import { useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import Link from "next/link";
-import TicketsTab from "./components/TicketsTab";
-import OrdersTab from "./components/OrdersTab";
+import OverviewTab from "./components/OverviewTab";
 import UserInfoSidebar from "./components/UserInfoSidebar";
 
 interface User {
@@ -178,19 +177,6 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     );
   }
 
-  const activeTab =
-    (typeof window !== "undefined" &&
-      new URLSearchParams(window.location.search).get("tab")) ||
-    "tickets";
-
-  const setTab = (tab: string) => {
-    try {
-      const url = new URL(window.location.href);
-      url.searchParams.set("tab", tab);
-      window.history.replaceState({}, "", url.toString());
-    } catch {}
-  };
-
   return (
     <Container>
       <div className="py-8" dir="rtl">
@@ -211,30 +197,6 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           </p>
         </div>
 
-        {/* Tabs */}
-        <div className="flex items-center justify-center gap-2 mb-6">
-          <button
-            onClick={() => setTab("tickets")}
-            className={`px-4 py-2 rounded-lg text-sm border ${
-              activeTab === "tickets"
-                ? "bg-white/20 text-white border-white/30"
-                : "text-white/70 border-white/20 hover:bg-white/10"
-            }`}
-          >
-            بلیط‌ها
-          </button>
-          <button
-            onClick={() => setTab("orders")}
-            className={`px-4 py-2 rounded-lg text-sm border ${
-              activeTab === "orders"
-                ? "bg-white/20 text-white border-white/30"
-                : "text-white/70 border-white/20 hover:bg-white/10"
-            }`}
-          >
-            سفارش‌ها
-          </button>
-        </div>
-
         {/* Content + Right Sidebar */}
         <div className="flex flex-col lg:flex-row gap-6">
           <div className="lg:w-80 lg:shrink-0">
@@ -242,11 +204,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           </div>
           <div className="flex-1">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              {activeTab === "orders" ? (
-                <OrdersTab orders={orders} />
-              ) : (
-                <TicketsTab tickets={tickets} />
-              )}
+              <OverviewTab tickets={tickets} orders={orders} />
             </div>
           </div>
         </div>

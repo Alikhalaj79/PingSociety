@@ -23,26 +23,56 @@ export async function getServerSideAuth(context: {
   }
 
   try {
-    // Verify token with your API using the correct endpoint
-    const response = await fetch(`${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`, {
+    // Call backend API directly from server-side
+    const backendUrl = `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`;
+    console.log("🔍 Server-side auth: Calling backend URL:", backendUrl);
+    
+    const response = await fetch(backendUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
         Accept: "application/json",
         Authorization: `Bearer ${token}`,
       },
+      // Add timeout and cache settings for server-side fetch
+      cache: "no-store",
+      next: { revalidate: 0 },
+      // Add signal for timeout handling
+      signal: AbortSignal.timeout(10000), // 10 second timeout
     });
 
+    console.log("🔍 Server-side auth: Response status:", response.status);
+    
     if (response.ok) {
       const userData = await response.json();
+      console.log("✅ Server-side auth: User authenticated successfully");
       return {
         isAuthenticated: true,
         user: userData,
         token,
       };
+    } else {
+      console.error("❌ Server-side auth: Backend returned error status:", response.status);
+      const errorText = await response.text();
+      console.error("❌ Server-side auth: Error response:", errorText);
     }
   } catch (error) {
-    console.error("Server-side auth error:", error);
+    // Log the error with more details
+    console.error("💥 Server-side auth error:", error);
+    if (error instanceof Error) {
+      console.error("💥 Error name:", error.name);
+      console.error("💥 Error message:", error.message);
+      if (error.cause) {
+        console.error("💥 Error cause:", error.cause);
+      }
+    }
+    
+    // If it's a fetch error, it might be a network/connectivity issue
+    if (error instanceof TypeError && error.message.includes("fetch")) {
+      console.error("💥 This looks like a network connectivity issue.");
+      console.error("💥 Check if the backend is accessible from the server.");
+      console.error("💥 Backend URL should be:", `${API_CONFIG.BASE_URL}${API_ENDPOINTS.USER_ME}`);
+    }
   }
 
   return {
