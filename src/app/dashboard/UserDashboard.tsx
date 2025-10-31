@@ -50,12 +50,14 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(!initialUser);
+  const [dataLoading, setDataLoading] = useState(false);
   const [error, setError] = useState("");
   // Tabs removed; show combined content in main area
   // const _router = useRouter();
 
   const fetchTicketsAndOrders = useCallback(async () => {
     try {
+      setDataLoading(true);
       const loadTickets = async () => {
         const params = new URLSearchParams(
           typeof window !== "undefined" ? window.location.search : ""
@@ -101,6 +103,8 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
       }
     } catch (error) {
       console.error("Error fetching tickets and orders:", error);
+    } finally {
+      setDataLoading(false);
     }
   }, []);
 
@@ -144,6 +148,36 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
       // Still fetch tickets and orders
       fetchTicketsAndOrders();
     }
+
+    // Listen for refresh event (e.g., after successful payment)
+    const handleRefresh = () => {
+      console.log("🔄 Refreshing dashboard data...");
+      fetchTicketsAndOrders();
+    };
+
+    // Refresh data when window/tab gains focus
+    const handleFocus = () => {
+      console.log("🔄 Window focused, refreshing dashboard data...");
+      fetchTicketsAndOrders();
+    };
+
+    // Refresh data when tab becomes visible
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        console.log("🔄 Tab visible, refreshing dashboard data...");
+        fetchTicketsAndOrders();
+      }
+    };
+
+    window.addEventListener("refresh-dashboard", handleRefresh);
+    window.addEventListener("focus", handleFocus);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+    
+    return () => {
+      window.removeEventListener("refresh-dashboard", handleRefresh);
+      window.removeEventListener("focus", handleFocus);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
 
   if (loading) {
@@ -204,7 +238,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           </div>
           <div className="flex-1">
             <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <OverviewTab tickets={tickets} orders={orders} />
+              <OverviewTab tickets={tickets} orders={orders} loading={dataLoading} />
             </div>
           </div>
         </div>
