@@ -19,3 +19,5 @@ export default function ModalPortal({ children }: ModalPortalProps) {
   const target = document.body;
   return createPortal(children, target);
 }
+
+
