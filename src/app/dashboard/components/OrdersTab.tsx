@@ -29,18 +29,24 @@ const statusClass = (status?: string) => {
 };
 
 export default function OrdersTab({ orders }: OrdersTabProps) {
+  // Filter orders: only show PENDING orders (not PAID, CONFIRMED, or COMPLETED)
+  // Orders that are paid and converted to tickets should not be shown
+  const pendingOrders = orders.filter(
+    (order) => order.status && order.status.toUpperCase() === "PENDING"
+  );
+
   return (
     <div className="space-y-6" dir="rtl">
       <h2 className="text-2xl font-bold text-white mb-6">سفارش‌های من</h2>
 
-      {!orders || orders.length === 0 ? (
+      {!pendingOrders || pendingOrders.length === 0 ? (
         <div className="text-center py-12">
           <div className="text-6xl mb-4">🧾</div>
           <p className="text-white/60 text-lg">سفارشی ثبت نکرده‌اید</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {orders.map((order) => (
+          {pendingOrders.map((order) => (
             <div
               key={String(order.id)}
               className="bg-white/5 rounded-xl p-6 border border-white/10"
