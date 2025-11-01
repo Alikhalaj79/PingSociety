@@ -1,14 +1,34 @@
-import { redirect } from "next/navigation";
-import { getClientSideAuth } from "@/lib/auth";
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useAuthContext } from "@/providers/AuthProvider";
 import RegisterForm from "./RegisterForm";
 
-// Server Component
-export default async function RegisterPage() {
-  // Check if user is already authenticated
-  const auth = getClientSideAuth();
+export default function RegisterPage() {
+  const { isAuthenticated, isLoading } = useAuthContext();
+  const router = useRouter();
+  const [isChecking, setIsChecking] = useState(true);
 
-  if (auth.isAuthenticated) {
-    redirect("/");
+  useEffect(() => {
+    if (!isLoading) {
+      setIsChecking(false);
+      if (isAuthenticated) {
+        router.push("/dashboard");
+      }
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  // Show loading while checking authentication
+  if (isLoading || isChecking) {
+    return (
+      <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F84920]"></div>
+          <p className="text-white/80 text-sm">در حال بررسی وضعیت...</p>
+        </div>
+      </div>
+    );
   }
 
   return <RegisterForm />;

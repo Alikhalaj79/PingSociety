@@ -76,10 +76,14 @@ export default function Gallery() {
     "/imagesInMainPage/image5.jpg",
     "/imagesInMainPage/image6.jpg",
     "/imagesInMainPage/image7.jpg",
+    "/imagesInMainPage/image8.JPG",
+    "/imagesInMainPage/image9.jpg",
+    "/imagesInMainPage/image10.jpg",
+    "/imagesInMainPage/image11.jpg",
   ];
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-black overflow-hidden">
+    <section className="py-8 sm:py-12 md:py-16 bg-[#0C0C22] overflow-hidden">
       <div className="w-full">
         <div
           className="keen-slider"

@@ -30,7 +30,16 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-[#0C0C22]">
-      <Suspense fallback={<DashboardSkeleton />}>
+      <Suspense
+        fallback={
+          <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center">
+            <div className="flex flex-col items-center gap-4">
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F84920]"></div>
+              <p className="text-white/80 text-sm">در حال بارگذاری...</p>
+            </div>
+          </div>
+        }
+      >
         <UserDashboard initialUser={auth.user} />
       </Suspense>
     </div>

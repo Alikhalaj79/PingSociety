@@ -6,7 +6,6 @@ import Image from "next/image";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
 import Footer from "@/components/homePage/Footer";
-import { apiService } from "@/services/api";
 import toast from "react-hot-toast";
 
 interface Ticket {
@@ -125,22 +124,21 @@ export default function EventDetailPage() {
       setLoading(true);
       setError(null);
 
-      // Try both /event/:id and /events/:id endpoints
-      const response = await apiService.get<Event>(`/event/${eventId}`);
+      // Use Next.js API proxy to avoid CORS issues
+      const res = await fetch(`/api/event/${eventId}`, {
+        method: "GET",
+        cache: "no-store",
+      });
 
-      if (response.success && response.data) {
-        setEvent(response.data);
-        } else {
-          // Try alternative endpoint
-          const altResponse = await apiService.get<Event>(`/events/${eventId}`);
-          if (altResponse.success && altResponse.data) {
-            setEvent(altResponse.data);
-          } else {
-            const errorMsg = response.error || altResponse.error || "رویداد یافت نشد";
-            setError(errorMsg);
-            toast.error(errorMsg);
-          }
-        }
+      const json = await res.json();
+
+      if (res.ok && json?.success && json?.event) {
+        setEvent(json.event);
+      } else {
+        const errorMsg = json?.error || json?.message || "رویداد یافت نشد";
+        setError(errorMsg);
+        toast.error(errorMsg);
+      }
     } catch (err) {
       console.error("Error fetching event:", err);
       const errorMessage = "خطا در ارتباط با سرور";

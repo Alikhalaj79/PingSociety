@@ -62,16 +62,23 @@ class ApiService {
       },
     };
 
+    const controller = new AbortController();
+    let timeoutId: NodeJS.Timeout | null = null;
+
     try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), this.timeout);
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, this.timeout);
 
       const response = await fetch(url, {
         ...config,
         signal: controller.signal,
       });
 
-      clearTimeout(timeoutId);
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
@@ -87,15 +94,29 @@ class ApiService {
         message: data.message,
       };
     } catch (error) {
-      console.error("API Request failed:", error);
+      // Clear timeout in case of error
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+        timeoutId = null;
+      }
 
+      // Handle AbortError (timeout) silently
+      const isAbortError =
+        error instanceof Error &&
+        (error.name === "AbortError" ||
+          error.message.includes("aborted") ||
+          (error as any).code === 20);
+
+      if (isAbortError) {
+        return {
+          success: false,
+          error: "درخواست زمان زیادی طول کشید. لطفاً دوباره تلاش کنید.",
+        };
+      }
+
+      // Log other errors only if they're not expected
       if (error instanceof Error) {
-        if (error.name === "AbortError") {
-          return {
-            success: false,
-            error: "درخواست زمان زیادی طول کشید. لطفاً دوباره تلاش کنید.",
-          };
-        }
+        console.error("API Request failed:", error);
         return {
           success: false,
           error: error.message,
