@@ -44,7 +44,16 @@ export default function Events() {
       });
       const json = await res.json();
       if (res.ok && json?.success) {
-        const eventsData = (json.events as Event[]) || [];
+        // Ensure events is always an array
+        let eventsData: Event[] = [];
+        if (Array.isArray(json.events)) {
+          eventsData = json.events;
+        } else if (json.events && typeof json.events === "object") {
+          // If events is an object, try to extract array from it
+          eventsData = [];
+        } else {
+          eventsData = [];
+        }
         setEvents(eventsData);
       } else {
         setError(json?.error || "خطا در دریافت رویدادها");
@@ -140,7 +149,10 @@ export default function Events() {
     );
   }
 
-  if (events.length === 0) {
+  // Safety check: ensure events is always an array before using .map()
+  const safeEvents = Array.isArray(events) ? events : [];
+
+  if (safeEvents.length === 0) {
     return (
       <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#0c0c22] to-black">
         <Container>
@@ -174,7 +186,7 @@ export default function Events() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {events.map((event) => (
+          {safeEvents.map((event) => (
             <Link href={`/events/${event.id}`} key={event.id} className="group">
               <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/10 h-full flex flex-col">
                 {/* Image */}
