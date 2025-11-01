@@ -34,7 +34,9 @@ export default function PaymentCallbackPage() {
 
         // Call callback API (GET endpoint - public, called by Zarinpal)
         const response = await fetch(
-          `/api/payment/callback?Authority=${authority}&Status=${statusParam || ""}`,
+          `/api/payment/callback?Authority=${authority}&Status=${
+            statusParam || ""
+          }`,
           {
             method: "GET",
             headers: {
@@ -51,12 +53,12 @@ export default function PaymentCallbackPage() {
           setStatus("success");
           setMessage(data.message || "پرداخت با موفقیت انجام شد");
           toast.success(data.message || "پرداخت با موفقیت انجام شد");
-          
+
           // Dispatch event to refresh dashboard data (tickets and orders)
           try {
             window.dispatchEvent(new Event("refresh-dashboard"));
           } catch {}
-          
+
           setTimeout(() => {
             router.push("/dashboard?tab=overview");
           }, 2000);
@@ -154,4 +156,3 @@ export default function PaymentCallbackPage() {
     </div>
   );
 }
-

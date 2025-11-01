@@ -33,7 +33,21 @@ export async function GET(_request: NextRequest) {
       );
     }
 
-    return NextResponse.json({ success: true, events: json });
+    // Normalize the response - handle different response formats
+    // Backend might return: array, { events: [...] }, { data: [...] }, etc.
+    let eventsArray: any[] = [];
+    if (Array.isArray(json)) {
+      eventsArray = json;
+    } else if (json && typeof json === "object") {
+      eventsArray = json.events ?? json.data ?? json.items ?? [];
+    }
+
+    // Ensure eventsArray is always an array
+    if (!Array.isArray(eventsArray)) {
+      eventsArray = [];
+    }
+
+    return NextResponse.json({ success: true, events: eventsArray });
   } catch (e) {
     return NextResponse.json(
       { success: false, error: "خطا در ارتباط با سرور" },
