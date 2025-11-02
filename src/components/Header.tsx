@@ -102,7 +102,7 @@ export default function Header() {
                   <TicketIcon />
                 </div>
                 <span className="text-red-400 text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
-                  Ticket
+                Events
                 </span>
               </button>
 
