@@ -1,23 +1,30 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useAuthContext } from "@/providers/AuthProvider";
 import RegisterForm from "./RegisterForm";
 
 export default function RegisterPage() {
   const { isAuthenticated, isLoading } = useAuthContext();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [isChecking, setIsChecking] = useState(true);
+  const returnTo = searchParams.get("returnTo");
 
   useEffect(() => {
     if (!isLoading) {
       setIsChecking(false);
       if (isAuthenticated) {
-        router.push("/dashboard");
+        // Redirect to returnTo if exists, otherwise to dashboard
+        if (returnTo) {
+          router.push(decodeURIComponent(returnTo));
+        } else {
+          router.push("/");
+        }
       }
     }
-  }, [isAuthenticated, isLoading, router]);
+  }, [isAuthenticated, isLoading, router, returnTo]);
 
   // Show loading while checking authentication
   if (isLoading || isChecking) {

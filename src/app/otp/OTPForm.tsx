@@ -26,6 +26,8 @@ export default function OTPForm() {
       router.push("/register");
     }
   }, [searchParams, router]);
+  
+  const returnTo = searchParams.get("returnTo");
 
   // Get OTP code from localStorage for development
   useEffect(() => {
@@ -151,8 +153,12 @@ export default function OTPForm() {
           },
         });
 
-        // Redirect to dashboard
-        router.push("/dashboard");
+        // Redirect to returnTo if exists, otherwise to home page
+        if (returnTo) {
+          router.push(decodeURIComponent(returnTo));
+        } else {
+          router.push("/");
+        }
       } else {
         setError(data.message || data.error || "کد تایید نامعتبر است");
       }

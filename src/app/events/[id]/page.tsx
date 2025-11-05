@@ -6,6 +6,8 @@ import Image from "next/image";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
 import Footer from "@/components/homePage/Footer";
+import EditProfileModal from "@/components/EditProfileModal";
+import OrderCardModal from "@/components/OrderCardModal";
 import toast from "react-hot-toast";
 
 interface Ticket {
@@ -51,11 +53,14 @@ export default function EventDetailPage() {
   const [error, setError] = useState<string | null>(null);
   const [imageError, setImageError] = useState(false);
   const [orderLoading, setOrderLoading] = useState(false);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const [isOrderCardOpen, setIsOrderCardOpen] = useState(false);
+  const [currentOrder, setCurrentOrder] = useState<any>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
 
-  const handleRegister = useCallback(async () => {
-    if (!eventId) return;
+  const createOrder = useCallback(async () => {
+    if (!eventId) return false;
     try {
-      setOrderLoading(true);
       const ticketId =
         event?.tickets && event.tickets[0] ? event.tickets[0].id : undefined;
       type OrderResponse = {
@@ -63,6 +68,7 @@ export default function EventDetailPage() {
         status?: string;
         message?: string;
         error?: string;
+        order?: any;
       };
       const res = await fetch(`/api/order/create`, {
         method: "POST",
@@ -79,45 +85,93 @@ export default function EventDetailPage() {
       } catch {
         payload = undefined;
       }
-      // Treat any 2xx (e.g., 201 Created) as success, then redirect to dashboard tickets
+      
       if (res.ok) {
-        // Optional: brief success feedback
         toast.success("سفارش با موفقیت ایجاد شد");
-        const to = `/dashboard?tab=orders${
-          eventId ? `&eventId=${encodeURIComponent(eventId)}` : ""
-        }`;
-        window.location.href = to;
+        setCurrentOrder(payload?.order || payload);
+        setIsOrderCardOpen(true);
+        return true;
       } else {
         // Handle profile incomplete case (422)
         if (res.status === 422 && payload?.error === "Profile Incomplete") {
-          const missing = Array.isArray(
-            (payload as Record<string, unknown>).missingFields
-          )
-            ? ((payload as Record<string, unknown>).missingFields as string[])
-            : [];
-          const fieldsList = missing.length
-            ? `\n\nفیلدهای ناقص: ${missing.join(", ")}`
-            : "";
-          const goToProfile = confirm(
-            `برای ادامه، ابتدا پروفایل خود را تکمیل کنید.${fieldsList}\n\nمایلید اکنون به صفحه تکمیل پروفایل بروید؟`
-          );
-          if (goToProfile) {
-            const returnTo = encodeURIComponent(`/events/${eventId}`);
-            window.location.href = `/dashboard?tab=profile&return=${returnTo}`;
-            return;
+          // Fetch user data for profile modal
+          try {
+            const userRes = await fetch("/api/user/me", {
+              method: "GET",
+              headers: { "Content-Type": "application/json" },
+              credentials: "include",
+            });
+            if (userRes.ok) {
+              const userData = await userRes.json();
+              if (userData.user) {
+                setCurrentUser(userData.user);
+                setIsEditProfileOpen(true);
+                return false;
+              }
+            }
+          } catch {
+            // Fallback
           }
+          setIsEditProfileOpen(true);
+          return false;
         } else {
           const errMsg =
             payload?.error || payload?.message || "ایجاد سفارش ناموفق بود";
           toast.error(errMsg);
+          return false;
         }
       }
     } catch {
       toast.error("خطا در ایجاد سفارش");
+      return false;
+    }
+  }, [eventId, event]);
+
+  const handleRegister = useCallback(async () => {
+    if (!eventId) return;
+    try {
+      setOrderLoading(true);
+      
+      // Check authentication first
+      const authRes = await fetch("/api/auth/check-auth", {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+      
+      const authData = await authRes.json();
+      
+      if (!authRes.ok || !authData.isAuthenticated) {
+        // User is not logged in
+        toast.error("ابتدا وارد حساب کاربری شوید");
+        const returnTo = encodeURIComponent(`/events/${eventId}`);
+        window.location.href = `/register?returnTo=${returnTo}`;
+        return;
+      }
+      
+      // User is authenticated, create order
+      await createOrder();
+    } catch (error) {
+      console.error("Error in handleRegister:", error);
+      toast.error("خطا در ارتباط با سرور");
     } finally {
       setOrderLoading(false);
     }
-  }, [eventId, event]);
+  }, [eventId, createOrder]);
+
+  const handleProfileSaveSuccess = useCallback(async () => {
+    setIsEditProfileOpen(false);
+    // Retry creating order after profile is saved
+    setOrderLoading(true);
+    try {
+      await createOrder();
+    } catch (error) {
+      console.error("Error retrying order creation:", error);
+      toast.error("خطا در ایجاد سفارش");
+    } finally {
+      setOrderLoading(false);
+    }
+  }, [createOrder]);
 
   const fetchEventDetail = useCallback(async () => {
     try {
@@ -473,6 +527,23 @@ export default function EventDetailPage() {
       </section>
 
       <Footer />
+
+      {/* Edit Profile Modal */}
+      {currentUser && (
+        <EditProfileModal
+          user={currentUser}
+          isOpen={isEditProfileOpen}
+          onClose={() => setIsEditProfileOpen(false)}
+          onSave={handleProfileSaveSuccess}
+        />
+      )}
+
+      {/* Order Card Modal */}
+      <OrderCardModal
+        order={currentOrder}
+        isOpen={isOrderCardOpen}
+        onClose={() => setIsOrderCardOpen(false)}
+      />
     </div>
   );
 }

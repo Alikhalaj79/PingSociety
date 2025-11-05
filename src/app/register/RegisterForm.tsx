@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
@@ -12,6 +12,8 @@ export default function RegisterForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = searchParams.get("returnTo");
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, ""); // Only allow digits
@@ -92,7 +94,11 @@ export default function RegisterForm() {
         }
 
         // Always navigate to OTP page when phone number is sent successfully
-        router.push(`/otp?phone=${encodeURIComponent(phoneNumber)}`);
+        // Preserve returnTo if it exists
+        const otpUrl = returnTo
+          ? `/otp?phone=${encodeURIComponent(phoneNumber)}&returnTo=${encodeURIComponent(returnTo)}`
+          : `/otp?phone=${encodeURIComponent(phoneNumber)}`;
+        router.push(otpUrl);
       } else {
         setError(data.message || data.error || "خطا در ارسال کد تایید");
       }
