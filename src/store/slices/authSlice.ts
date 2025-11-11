@@ -125,6 +125,13 @@ const authSlice = createSlice({
       state.token = null;
       state.error = null;
       state.isLoading = false;
+      // Clear all localStorage and sessionStorage
+      if (typeof window !== 'undefined') {
+        // Clear all localStorage items
+        localStorage.clear();
+        // Clear all sessionStorage items
+        sessionStorage.clear();
+      }
     },
     setLoading: (state, action: PayloadAction<boolean>) => {
       state.isLoading = action.payload;

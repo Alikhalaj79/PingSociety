@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Container from "@/components/Container";
@@ -9,6 +9,9 @@ import Footer from "@/components/homePage/Footer";
 import EditProfileModal from "@/components/EditProfileModal";
 import OrderCardModal from "@/components/OrderCardModal";
 import toast from "react-hot-toast";
+import { useOrdersRTK } from "@/hooks/useOrdersRTK";
+import { useAppSelector } from "@/store/hooks";
+import { unwrapResult } from "@reduxjs/toolkit";
 
 interface Ticket {
   id?: string | number;
@@ -43,6 +46,44 @@ interface Event {
   moderators?: Moderator[];
 }
 
+interface User {
+  id: number;
+  phone: string;
+  fullname?: string;
+  email?: string;
+  company?: string;
+  fieldOfActivity?: string;
+  source?: string;
+  role: string;
+  created_at: string;
+  updated_at: string;
+  moderatedEvents: unknown[];
+  tickets: unknown[];
+  orders: unknown[];
+  payments: unknown[];
+  sponsor?: unknown;
+}
+
+interface Order {
+  id: number | string;
+  orderNumber?: string;
+  status?: string;
+  totalAmount?: number;
+  quantity?: number;
+  ticketPrice?: number;
+  createdAt?: string;
+  event?: {
+    id?: number | string;
+    title?: string;
+    description?: string;
+    startDate?: string;
+    image?: string;
+  };
+  ticket?: {
+    price?: number;
+  };
+}
+
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -55,8 +96,55 @@ export default function EventDetailPage() {
   const [orderLoading, setOrderLoading] = useState(false);
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const [isOrderCardOpen, setIsOrderCardOpen] = useState(false);
-  const [currentOrder, setCurrentOrder] = useState<any>(null);
-  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
+  const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [hasCheckedEventStatus, setHasCheckedEventStatus] = useState(false);
+  // Local state to track if user has purchased - resets immediately on user change
+  const [localHasPurchased, setLocalHasPurchased] = useState(false);
+
+  // RTK hooks
+  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const {
+    checkEvent,
+    getTicketForEvent,
+    getPendingOrderForEvent,
+    refreshOrders,
+    refreshTickets,
+    orders,
+    tickets,
+    isLoading: ordersLoading,
+  } = useOrdersRTK();
+
+  // Check if user has ticket or pending order for this event
+  // Only check if we have a current user to avoid using stale data from previous user
+  const ticket = eventId && user?.id ? getTicketForEvent(eventId) : null;
+  // pendingOrder is used in useEffect hooks below
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const pendingOrder =
+    eventId && user?.id ? getPendingOrderForEvent(eventId) : null;
+
+  // Update local hasPurchased state based on ticket and user
+  // This ensures immediate update when user changes, before Redux store updates
+  useEffect(() => {
+    // Only update if we have a user (to avoid stale data from previous user)
+    if (!user?.id) {
+      setLocalHasPurchased(false);
+      return;
+    }
+
+    // If we have a ticket for current user, set to true
+    if (ticket) {
+      setLocalHasPurchased(true);
+    }
+    // If no ticket and not loading, set to false
+    else if (!ordersLoading) {
+      setLocalHasPurchased(false);
+    }
+    // If loading, keep current state (don't change during loading)
+  }, [user?.id, ticket, ordersLoading]);
+
+  // Use local state for hasPurchased to avoid stale data during user transitions
+  const hasPurchased = localHasPurchased;
 
   const createOrder = useCallback(async () => {
     if (!eventId) return false;
@@ -66,9 +154,10 @@ export default function EventDetailPage() {
       type OrderResponse = {
         success?: boolean;
         status?: string;
-        message?: string;
+        statusCode?: number;
+        message?: string | string[];
         error?: string;
-        order?: any;
+        order?: unknown;
       };
       const res = await fetch(`/api/order/create`, {
         method: "POST",
@@ -85,13 +174,62 @@ export default function EventDetailPage() {
       } catch {
         payload = undefined;
       }
-      
+
       if (res.ok) {
         toast.success("سفارش با موفقیت ایجاد شد");
-        setCurrentOrder(payload?.order || payload);
+        const newOrder = (payload?.order || payload) as Order | null;
+        setCurrentOrder(newOrder);
         setIsOrderCardOpen(true);
+        // Refresh orders and tickets after creating order
+        refreshOrders();
+        refreshTickets();
         return true;
       } else {
+        // Handle already purchased case (400)
+        if (res.status === 400) {
+          const message = payload?.message;
+          const isAlreadyPurchased =
+            (Array.isArray(message) &&
+              message.some((msg: string) =>
+                msg.toLowerCase().includes("already purchased")
+              )) ||
+            (typeof message === "string" &&
+              message.toLowerCase().includes("already purchased")) ||
+            (typeof payload?.error === "string" &&
+              payload.error.toLowerCase().includes("already purchased"));
+
+          if (isAlreadyPurchased) {
+            toast("شما قبلا این ایونت رو تهیه کردید", {
+              icon: "ℹ️",
+              duration: 4000,
+            });
+            // Refresh orders and tickets to get the latest data
+            refreshOrders();
+            refreshTickets();
+            // Check event status again to update UI
+            if (eventId) {
+              checkEvent(eventId).then((result) => {
+                try {
+                  const payload = unwrapResult(result);
+                  // Update localHasPurchased based on checkEvent result
+                  setLocalHasPurchased(!!payload.ticket);
+                  if (payload.ticket) {
+                    // User has ticket, button will be disabled automatically
+                  } else if (payload.pendingOrder) {
+                    // User has pending order, show modal
+                    setCurrentOrder(payload.pendingOrder);
+                    setIsOrderCardOpen(true);
+                  }
+                } catch (error) {
+                  console.error("Error refreshing event status:", error);
+                  setLocalHasPurchased(false);
+                }
+              });
+            }
+            return false;
+          }
+        }
+
         // Handle profile incomplete case (422)
         if (res.status === 422 && payload?.error === "Profile Incomplete") {
           // Fetch user data for profile modal
@@ -115,8 +253,13 @@ export default function EventDetailPage() {
           setIsEditProfileOpen(true);
           return false;
         } else {
+          // Handle other errors
           const errMsg =
-            payload?.error || payload?.message || "ایجاد سفارش ناموفق بود";
+            (Array.isArray(payload?.message)
+              ? payload.message.join(", ")
+              : payload?.message) ||
+            payload?.error ||
+            "ایجاد سفارش ناموفق بود";
           toast.error(errMsg);
           return false;
         }
@@ -125,22 +268,22 @@ export default function EventDetailPage() {
       toast.error("خطا در ایجاد سفارش");
       return false;
     }
-  }, [eventId, event]);
+  }, [eventId, event, refreshOrders, refreshTickets, checkEvent]);
 
   const handleRegister = useCallback(async () => {
     if (!eventId) return;
     try {
       setOrderLoading(true);
-      
+
       // Check authentication first
       const authRes = await fetch("/api/auth/check-auth", {
         method: "GET",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
       });
-      
+
       const authData = await authRes.json();
-      
+
       if (!authRes.ok || !authData.isAuthenticated) {
         // User is not logged in
         toast.error("ابتدا وارد حساب کاربری شوید");
@@ -148,8 +291,36 @@ export default function EventDetailPage() {
         window.location.href = `/register?returnTo=${returnTo}`;
         return;
       }
-      
-      // User is authenticated, create order
+
+      // User is authenticated, check for existing pending order first
+      // checkEvent will fetch the latest orders and tickets from the server
+      try {
+        const result = await checkEvent(eventId);
+        const payload = unwrapResult(result);
+        const { ticket, pendingOrder } = payload;
+
+        // If user already has a ticket, show message and don't proceed
+        if (ticket) {
+          toast("شما قبلا این ایونت رو تهیه کردید", {
+            icon: "ℹ️",
+            duration: 4000,
+          });
+          setLocalHasPurchased(true);
+          return;
+        }
+
+        // If there's a pending order, show it instead of creating a new one
+        if (pendingOrder) {
+          setCurrentOrder(pendingOrder);
+          setIsOrderCardOpen(true);
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking event status:", error);
+        // If check fails, proceed with creating order
+      }
+
+      // No pending order found, create new order
       await createOrder();
     } catch (error) {
       console.error("Error in handleRegister:", error);
@@ -157,13 +328,43 @@ export default function EventDetailPage() {
     } finally {
       setOrderLoading(false);
     }
-  }, [eventId, createOrder]);
+  }, [eventId, createOrder, checkEvent]);
 
   const handleProfileSaveSuccess = useCallback(async () => {
     setIsEditProfileOpen(false);
     // Retry creating order after profile is saved
     setOrderLoading(true);
     try {
+      // Check for existing pending order first
+      if (eventId) {
+        try {
+          const result = await checkEvent(eventId);
+          const payload = unwrapResult(result);
+          const { ticket, pendingOrder } = payload;
+
+          // If user already has a ticket, show message and don't proceed
+          if (ticket) {
+            toast("شما قبلا این ایونت رو تهیه کردید", {
+              icon: "ℹ️",
+              duration: 4000,
+            });
+            setLocalHasPurchased(true);
+            return;
+          }
+
+          // If there's a pending order, show it instead of creating a new one
+          if (pendingOrder) {
+            setCurrentOrder(pendingOrder);
+            setIsOrderCardOpen(true);
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking event status:", error);
+          // If check fails, proceed with creating order
+        }
+      }
+
+      // No pending order found, create new order
       await createOrder();
     } catch (error) {
       console.error("Error retrying order creation:", error);
@@ -171,7 +372,7 @@ export default function EventDetailPage() {
     } finally {
       setOrderLoading(false);
     }
-  }, [createOrder]);
+  }, [createOrder, eventId, checkEvent]);
 
   const fetchEventDetail = useCallback(async () => {
     try {
@@ -202,6 +403,166 @@ export default function EventDetailPage() {
       setLoading(false);
     }
   }, [eventId]);
+
+  // Track previous user ID to detect user changes
+  const prevUserIdRef = useRef<string | undefined>(user?.id);
+  // Track previous orders/tickets length to detect data changes
+  const prevOrdersLengthRef = useRef(orders.length);
+  const prevTicketsLengthRef = useRef(tickets.length);
+
+  // Reset state and check event status when user changes
+  useEffect(() => {
+    const currentUserId = user?.id;
+    const prevUserId = prevUserIdRef.current;
+
+    // If user changed (different user logged in)
+    if (currentUserId && prevUserId && currentUserId !== prevUserId) {
+      setHasCheckedEventStatus(false);
+      setIsOrderCardOpen(false);
+      setCurrentOrder(null);
+      // Immediately reset hasPurchased for new user
+      setLocalHasPurchased(false);
+      // Reset refs for new user
+      prevOrdersLengthRef.current = 0;
+      prevTicketsLengthRef.current = 0;
+      // Refresh orders and tickets for new user
+      refreshOrders();
+      refreshTickets();
+    }
+    // If user logged in (was null, now has ID)
+    else if (currentUserId && !prevUserId) {
+      setHasCheckedEventStatus(false);
+      // Reset hasPurchased for new user
+      setLocalHasPurchased(false);
+      // Reset refs for new user
+      prevOrdersLengthRef.current = 0;
+      prevTicketsLengthRef.current = 0;
+    }
+    // If user logged out (had ID, now null)
+    else if (!currentUserId && prevUserId) {
+      setHasCheckedEventStatus(false);
+      setIsOrderCardOpen(false);
+      setCurrentOrder(null);
+      // Reset hasPurchased
+      setLocalHasPurchased(false);
+      // Reset refs
+      prevOrdersLengthRef.current = 0;
+      prevTicketsLengthRef.current = 0;
+    }
+
+    prevUserIdRef.current = currentUserId;
+  }, [user?.id, refreshOrders, refreshTickets]);
+
+  // Check event status when page loads and user is authenticated
+  // Also re-check when orders/tickets are loaded (after login)
+  useEffect(() => {
+    if (eventId && isAuthenticated && user?.id && !hasCheckedEventStatus) {
+      const checkStatus = async () => {
+        try {
+          const result = await checkEvent(eventId);
+          const payload = unwrapResult(result);
+          const { ticket, pendingOrder } = payload;
+
+          // Update localHasPurchased based on checkEvent result
+          setLocalHasPurchased(!!ticket);
+
+          // If ticket exists, show toast and disable button
+          if (ticket) {
+            toast("شما قبلا این ایونت رو تهیه کردید", {
+              icon: "ℹ️",
+              duration: 4000,
+            });
+          }
+          // If pending order exists, open modal
+          else if (pendingOrder) {
+            setCurrentOrder(pendingOrder);
+            setIsOrderCardOpen(true);
+          }
+        } catch (error) {
+          console.error("Error checking event status:", error);
+          // On error, assume no purchase
+          setLocalHasPurchased(false);
+        } finally {
+          setHasCheckedEventStatus(true);
+        }
+      };
+
+      // Wait a bit for orders/tickets to be fetched after login
+      const timeoutId = setTimeout(() => {
+        checkStatus();
+      }, 300);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [eventId, isAuthenticated, user?.id, hasCheckedEventStatus, checkEvent]);
+
+  // Re-check event status when orders/tickets change (e.g., after new user login)
+  // This only runs if we already checked once and now have new data
+  useEffect(() => {
+    const ordersChanged = orders.length !== prevOrdersLengthRef.current;
+    const ticketsChanged = tickets.length !== prevTicketsLengthRef.current;
+
+    // Update refs
+    prevOrdersLengthRef.current = orders.length;
+    prevTicketsLengthRef.current = tickets.length;
+
+    // Only re-check if:
+    // 1. User is authenticated
+    // 2. We already checked once (hasCheckedEventStatus is true)
+    // 3. Orders or tickets actually increased (new data loaded, not cleared)
+    // 4. We have some data (not empty)
+    if (
+      eventId &&
+      isAuthenticated &&
+      user?.id &&
+      hasCheckedEventStatus &&
+      (ordersChanged || ticketsChanged) &&
+      (orders.length > 0 || tickets.length > 0)
+    ) {
+      const checkStatus = async () => {
+        try {
+          const result = await checkEvent(eventId);
+          const payload = unwrapResult(result);
+          const { ticket, pendingOrder } = payload;
+
+          // Update localHasPurchased based on checkEvent result
+          setLocalHasPurchased(!!ticket);
+
+          // If ticket exists, show toast and disable button
+          if (ticket) {
+            toast("شما قبلا این ایونت رو تهیه کردید", {
+              icon: "ℹ️",
+              duration: 4000,
+            });
+          }
+          // If pending order exists, open modal
+          else if (pendingOrder) {
+            setCurrentOrder(pendingOrder);
+            setIsOrderCardOpen(true);
+          }
+        } catch (error) {
+          console.error("Error re-checking event status:", error);
+          // On error, assume no purchase
+          setLocalHasPurchased(false);
+        }
+      };
+
+      // Small delay to ensure data is fully loaded
+      const timeoutId = setTimeout(() => {
+        checkStatus();
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [
+    eventId,
+    isAuthenticated,
+    user?.id,
+    orders.length,
+    tickets.length,
+    checkEvent,
+    hasCheckedEventStatus,
+  ]);
 
   useEffect(() => {
     if (eventId) {
@@ -502,6 +863,13 @@ export default function EventDetailPage() {
                     className="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
                   >
                     ثبت نام در رویداد
+                  </button>
+                ) : hasPurchased ? (
+                  <button
+                    disabled
+                    className="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
+                  >
+                    شما قبلا این ایونت رو تهیه کردید
                   </button>
                 ) : (
                   <button

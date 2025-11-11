@@ -194,6 +194,8 @@ const getOrderStatusColor = (status?: string) => {
   switch ((status || "").toUpperCase()) {
     case "PENDING":
       return "bg-yellow-500/20 text-yellow-300 border-yellow-500/30";
+    case "FAILED":
+      return "bg-orange-500/20 text-orange-300 border-orange-500/30";
     case "CONFIRMED":
     case "PAID":
       return "bg-green-500/20 text-green-300 border-green-500/30";
@@ -209,10 +211,14 @@ export default function OverviewTab({
   orders,
   loading = false,
 }: OverviewTabProps) {
-  // Filter orders: only show PENDING orders (not PAID, CONFIRMED, or COMPLETED)
+  // Filter orders: show PENDING and FAILED orders (not PAID, CONFIRMED, or COMPLETED)
   // Orders that are paid and converted to tickets should not be shown
+  // FAILED orders are shown so user can retry payment
   const pendingOrders = orders.filter(
-    (order) => order.status && order.status.toUpperCase() === "PENDING"
+    (order) => {
+      const status = order.status?.toUpperCase();
+      return status === "PENDING" || status === "FAILED";
+    }
   );
 
   const hasTickets = tickets && tickets.length > 0;
