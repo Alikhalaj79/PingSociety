@@ -10,26 +10,30 @@ export async function POST() {
       message: "خروج موفقیت‌آمیز",
     });
 
-    // Clear all auth cookies
-    response.cookies.set("access_token", "", {
+    // Clear all auth cookies - try different paths and domains to ensure complete cleanup
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: "lax" as const,
       maxAge: 0, // Expire immediately
-    });
+      path: "/",
+    };
 
-    response.cookies.set("refresh_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 0, // Expire immediately
-    });
+    // Clear all possible auth cookies
+    const cookiesToClear = [
+      "access_token",
+      "refresh_token",
+      "auth_token",
+      "token",
+      "session",
+      "sessionId",
+    ];
 
-    response.cookies.set("auth_token", "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 0, // Expire immediately
+    cookiesToClear.forEach((cookieName) => {
+      // Clear with default path
+      response.cookies.set(cookieName, "", cookieOptions);
+      // Also try clearing with root path explicitly
+      response.cookies.set(cookieName, "", { ...cookieOptions, path: "/" });
     });
 
     console.log("✅ Logout successful, cookies cleared");

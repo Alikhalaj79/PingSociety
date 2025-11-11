@@ -6,10 +6,12 @@ import Container from "@/components/Container";
 import Header from "@/components/Header";
 import Footer from "@/components/homePage/Footer";
 import toast from "react-hot-toast";
+import { useOrdersRTK } from "@/hooks/useOrdersRTK";
 
 export default function PaymentCallbackPage() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { refreshOrders, refreshTickets } = useOrdersRTK();
   const [status, setStatus] = useState<"loading" | "success" | "error">(
     "loading"
   );
@@ -54,6 +56,10 @@ export default function PaymentCallbackPage() {
           setMessage(data.message || "پرداخت با موفقیت انجام شد");
           toast.success(data.message || "پرداخت با موفقیت انجام شد");
 
+          // Refresh orders and tickets after successful payment
+          refreshOrders();
+          refreshTickets();
+
           // Dispatch event to refresh dashboard data (tickets and orders)
           try {
             window.dispatchEvent(new Event("refresh-dashboard"));
@@ -68,6 +74,17 @@ export default function PaymentCallbackPage() {
             data.error || data.message || "پرداخت ناموفق بود یا لغو شد"
           );
           toast.error(data.error || data.message || "پرداخت ناموفق بود");
+
+          // Refresh orders and tickets after failed payment to ensure PENDING order is still available
+          // The order should remain in PENDING status after failed payment
+          refreshOrders();
+          refreshTickets();
+
+          // Dispatch event to refresh dashboard data
+          try {
+            window.dispatchEvent(new Event("refresh-dashboard"));
+          } catch {}
+
           setTimeout(() => {
             router.push("/dashboard");
           }, 3000);
@@ -77,6 +94,16 @@ export default function PaymentCallbackPage() {
         setStatus("error");
         setMessage("خطا در بررسی وضعیت پرداخت");
         toast.error("خطا در بررسی وضعیت پرداخت");
+
+        // Refresh orders and tickets in case of error to ensure data is up to date
+        refreshOrders();
+        refreshTickets();
+
+        // Dispatch event to refresh dashboard data
+        try {
+          window.dispatchEvent(new Event("refresh-dashboard"));
+        } catch {}
+
         setTimeout(() => {
           router.push("/dashboard");
         }, 3000);
@@ -84,7 +111,7 @@ export default function PaymentCallbackPage() {
     };
 
     verifyPayment();
-  }, [searchParams, router]);
+  }, [searchParams, router, refreshOrders, refreshTickets]);
 
   return (
     <div className="min-h-screen bg-black text-white">
