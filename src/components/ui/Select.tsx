@@ -13,6 +13,8 @@ interface SelectProps {
   placeholder?: string;
   defaultValue?: string;
   className?: string;
+  required?: boolean;
+  validationMessage?: string;
 }
 
 export default function Select({
@@ -21,11 +23,14 @@ export default function Select({
   placeholder = "- انتخاب کنید -",
   defaultValue = "",
   className,
+  required = false,
+  validationMessage = "لطفاً این فیلد را پر کنید",
 }: SelectProps) {
   const [open, setOpen] = useState(false);
   const [value, setValue] = useState(defaultValue);
   const buttonRef = useRef<HTMLButtonElement | null>(null);
   const listRef = useRef<HTMLDivElement | null>(null);
+  const inputRef = useRef<HTMLInputElement | null>(null);
 
   const selected = options.find((o) => o.value === value);
 
@@ -51,9 +56,41 @@ export default function Select({
     };
   }, []);
 
+  useEffect(() => {
+    if (inputRef.current && required) {
+      const input = inputRef.current;
+      const handleInvalid = (e: Event) => {
+        e.preventDefault();
+        input.setCustomValidity(validationMessage);
+      };
+      const handleInput = () => {
+        input.setCustomValidity("");
+      };
+      input.addEventListener("invalid", handleInvalid);
+      input.addEventListener("input", handleInput);
+      return () => {
+        input.removeEventListener("invalid", handleInvalid);
+        input.removeEventListener("input", handleInput);
+      };
+    }
+  }, [required, validationMessage]);
+
+  useEffect(() => {
+    if (inputRef.current && value) {
+      inputRef.current.setCustomValidity("");
+    }
+  }, [value]);
+
   return (
     <div className={`relative ${className || ""}`} dir="rtl">
-      <input type="hidden" name={name} value={value} />
+      <input
+        ref={inputRef}
+        type="hidden"
+        name={name}
+        value={value}
+        required={required}
+        title={validationMessage}
+      />
 
       <button
         ref={buttonRef}
