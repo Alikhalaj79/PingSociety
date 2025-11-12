@@ -154,6 +154,32 @@ export default function EditProfileModal({
       return;
     }
 
+    if (!profileData.email || profileData.email.trim() === "") {
+      setMessage("ایمیل الزامی است");
+      setIsSaving(false);
+      return;
+    }
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(profileData.email)) {
+      setMessage("فرمت ایمیل معتبر نیست");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!profileData.fieldOfActivity || profileData.fieldOfActivity.trim() === "") {
+      setMessage("زمینه فعالیت الزامی است");
+      setIsSaving(false);
+      return;
+    }
+
+    if (!profileData.source || profileData.source.trim() === "") {
+      setMessage("منبع الزامی است");
+      setIsSaving(false);
+      return;
+    }
+
     const cleanProfileData = Object.fromEntries(
       Object.entries(profileData).filter(
         ([, value]) => value && value.trim() !== ""
@@ -240,12 +266,20 @@ export default function EditProfileModal({
                     defaultValue={user.fullname || ""}
                     placeholder="نام کامل خود را وارد کنید"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200"
+                    required
+                    title="لطفاً نام کامل را وارد کنید"
+                    onInvalid={(e) => {
+                      e.currentTarget.setCustomValidity("لطفاً نام کامل را وارد کنید");
+                    }}
+                    onInput={(e) => {
+                      e.currentTarget.setCustomValidity("");
+                    }}
                   />
                 </div>
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                    ایمیل (اختیاری)
+                    ایمیل *
                   </label>
                   <input
                     type="email"
@@ -253,6 +287,19 @@ export default function EditProfileModal({
                     defaultValue={user.email || ""}
                     placeholder="ایمیل خود را وارد کنید"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200"
+                    required
+                    title="لطفاً ایمیل را وارد کنید"
+                    onInvalid={(e) => {
+                      const target = e.currentTarget;
+                      if (target.validity.valueMissing) {
+                        target.setCustomValidity("لطفاً ایمیل را وارد کنید");
+                      } else if (target.validity.typeMismatch) {
+                        target.setCustomValidity("لطفاً یک ایمیل معتبر وارد کنید");
+                      }
+                    }}
+                    onInput={(e) => {
+                      e.currentTarget.setCustomValidity("");
+                    }}
                   />
                 </div>
 
@@ -271,26 +318,30 @@ export default function EditProfileModal({
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                    زمینه فعالیت (اختیاری)
+                    زمینه فعالیت *
                   </label>
                   <Select
                     name="fieldOfActivity"
                     defaultValue={user.fieldOfActivity || ""}
                     options={faOptions}
+                    required
+                    validationMessage="لطفاً زمینه فعالیت را انتخاب کنید"
                   />
                   <p className="mt-1 text-xs text-white/50">
-                    یکی از حوزه‌ها را انتخاب کنید (قابل عدم انتخاب)
+                    یکی از حوزه‌ها را انتخاب کنید
                   </p>
                 </div>
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                    منبع (اختیاری)
+                    منبع *
                   </label>
                   <Select
                     name="source"
                     defaultValue={user.source || ""}
                     options={sourceOptions}
+                    required
+                    validationMessage="لطفاً منبع را انتخاب کنید"
                   />
                   <p className="mt-1 text-xs text-white/50">
                     محل آشنایی با سرویس را انتخاب کنید
