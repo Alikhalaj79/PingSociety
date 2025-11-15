@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
@@ -8,7 +8,7 @@ import Footer from "@/components/homePage/Footer";
 import toast from "react-hot-toast";
 import { useOrdersRTK } from "@/hooks/useOrdersRTK";
 
-export default function PaymentCallbackPage() {
+function PaymentCallbackContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { refreshOrders, refreshTickets } = useOrdersRTK();
@@ -67,7 +67,7 @@ export default function PaymentCallbackPage() {
 
           setTimeout(() => {
             router.push("/dashboard?tab=overview");
-          }, 2000);
+          }, 1500);
         } else {
           setStatus("error");
           setMessage(
@@ -87,7 +87,7 @@ export default function PaymentCallbackPage() {
 
           setTimeout(() => {
             router.push("/dashboard");
-          }, 3000);
+          }, 1500);
         }
       } catch (error) {
         console.error("Payment verify error:", error);
@@ -106,7 +106,7 @@ export default function PaymentCallbackPage() {
 
         setTimeout(() => {
           router.push("/dashboard");
-        }, 3000);
+        }, 1500);
       }
     };
 
@@ -181,5 +181,24 @@ export default function PaymentCallbackPage() {
       </div>
       <Footer />
     </div>
+  );
+}
+
+
+export default function PaymentCallbackPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#F84920] mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold">در حال بارگذاری...</h2>
+            <p className="text-gray-400">لطفا صبر کنید</p>
+          </div>
+        </div>
+      }
+    >
+      <PaymentCallbackContent />
+    </Suspense>
   );
 }
