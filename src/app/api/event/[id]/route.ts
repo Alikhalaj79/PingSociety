@@ -5,9 +5,10 @@ export const dynamic = "force-dynamic";
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const eventId = params.id;
+  const { id: eventId } = await context.params; // 💡 مهم: باید await کنیم
+
   const backendUrl = `${API_CONFIG.BASE_URL}/event/${eventId}`;
 
   try {
@@ -61,7 +62,6 @@ async function safeParseJson(response: Response): Promise<any | null> {
   }
 }
 
-
 //       method: "GET",
 //       headers: {
 //         "Content-Type": "application/json",
@@ -103,4 +103,3 @@ async function safeParseJson(response: Response): Promise<any | null> {
 //     );
 //   }
 // }
-
