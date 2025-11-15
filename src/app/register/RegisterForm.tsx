@@ -1,13 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import Container from "@/components/Container";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 // No need for React Query - using Next.js API routes
 
-export default function RegisterForm() {
+// کامپوننت داخلی: کل منطق و UI رو اینجا می‌ذاریم (فقط در کلاینت رندر می‌شه)
+function RegisterFormContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -96,7 +97,9 @@ export default function RegisterForm() {
         // Always navigate to OTP page when phone number is sent successfully
         // Preserve returnTo if it exists
         const otpUrl = returnTo
-          ? `/otp?phone=${encodeURIComponent(phoneNumber)}&returnTo=${encodeURIComponent(returnTo)}`
+          ? `/otp?phone=${encodeURIComponent(
+              phoneNumber
+            )}&returnTo=${encodeURIComponent(returnTo)}`
           : `/otp?phone=${encodeURIComponent(phoneNumber)}`;
         router.push(otpUrl);
       } else {
@@ -169,5 +172,26 @@ export default function RegisterForm() {
         </div>
       </Container>
     </div>
+  );
+}
+
+// export default: کامپوننت اصلی که با Suspense wrap شده (برای حل مشکل build)
+export default function RegisterForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F84920] mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-white">
+              در حال بارگذاری...
+            </h2>
+            <p className="text-white/80 text-sm">لطفا صبر کنید</p>
+          </div>
+        </div>
+      }
+    >
+      <RegisterFormContent />
+    </Suspense>
   );
 }

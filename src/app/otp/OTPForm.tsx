@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import Container from "@/components/Container";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
 
-export default function OTPForm() {
+
+function OTPContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
@@ -26,7 +27,7 @@ export default function OTPForm() {
       router.push("/register");
     }
   }, [searchParams, router]);
-  
+
   const returnTo = searchParams.get("returnTo");
 
   // Get OTP code from localStorage for development
@@ -323,5 +324,26 @@ export default function OTPForm() {
         </div>
       </Container>
     </div>
+  );
+}
+
+
+export default function OTPForm() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F84920] mx-auto mb-4"></div>
+            <h2 className="text-2xl font-bold text-white">
+              در حال بارگذاری...
+            </h2>
+            <p className="text-white/80 text-sm">لطفا صبر کنید</p>
+          </div>
+        </div>
+      }
+    >
+      <OTPContent />
+    </Suspense>
   );
 }
