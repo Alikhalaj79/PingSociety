@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "http://209.38.235.116:3000",
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "http://209.38.235.116:80",
   TIMEOUT: 10000,
   HEADERS: {
     "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
 export const ENV = {
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
   IS_PRODUCTION: process.env.NODE_ENV === "production",
-  API_URL: process.env.NEXT_PUBLIC_API_URL || "http://209.38.235.116:3000",
+  API_URL: process.env.NEXT_PUBLIC_API_URL || "http://209.38.235.116:80",
 } as const;
 
 // Helper functions
