@@ -277,7 +277,7 @@ export default function EditProfileModal({
                   />
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-white/80 text-sm mb-2">
                     ایمیل *
                   </label>
@@ -301,9 +301,9 @@ export default function EditProfileModal({
                       e.currentTarget.setCustomValidity("");
                     }}
                   />
-                </div>
+                </div> */}
 
-                <div>
+                {/* <div>
                   <label className="block text-white/80 text-sm mb-2">
                     شرکت (اختیاری)
                   </label>
@@ -314,7 +314,7 @@ export default function EditProfileModal({
                     placeholder="نام شرکت خود را وارد کنید"
                     className="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200"
                   />
-                </div>
+                </div> */}
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
@@ -334,7 +334,7 @@ export default function EditProfileModal({
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                    منبع *
+                  محل آشنایی *
                   </label>
                   <Select
                     name="source"
