@@ -5,7 +5,7 @@
 Create a `.env.local` file in your project root with the following variable:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://209.38.235.116:80
+NEXT_PUBLIC_API_URL=https://api.pingsociety.ir
 ```
 
 ## Environment Variables Explained
@@ -13,7 +13,7 @@ NEXT_PUBLIC_API_URL=http://209.38.235.116:80
 ### `NEXT_PUBLIC_API_URL`
 
 - **Purpose**: Base URL for your backend API
-- **Default**: `http://209.38.235.116:80`
+- **Default**: `https://api.pingsociety.ir`
 - **Usage**: Used in all API calls to your backend
 - **Note**: Must start with `NEXT_PUBLIC_` to be accessible in client-side code
 
