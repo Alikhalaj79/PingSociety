@@ -142,7 +142,6 @@ export default function EditProfileModal({
     const formData = new FormData(e.currentTarget);
     const profileData = {
       fullname: (formData.get("fullname") as string) || "",
-      email: (formData.get("email") as string) || "",
       company: (formData.get("company") as string) || "",
       fieldOfActivity: (formData.get("fieldOfActivity") as string) || "",
       source: (formData.get("source") as string) || "",
@@ -154,21 +153,10 @@ export default function EditProfileModal({
       return;
     }
 
-    if (!profileData.email || profileData.email.trim() === "") {
-      setMessage("ایمیل الزامی است");
-      setIsSaving(false);
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(profileData.email)) {
-      setMessage("فرمت ایمیل معتبر نیست");
-      setIsSaving(false);
-      return;
-    }
-
-    if (!profileData.fieldOfActivity || profileData.fieldOfActivity.trim() === "") {
+    if (
+      !profileData.fieldOfActivity ||
+      profileData.fieldOfActivity.trim() === ""
+    ) {
       setMessage("زمینه فعالیت الزامی است");
       setIsSaving(false);
       return;
@@ -269,7 +257,9 @@ export default function EditProfileModal({
                     required
                     title="لطفاً نام کامل را وارد کنید"
                     onInvalid={(e) => {
-                      e.currentTarget.setCustomValidity("لطفاً نام کامل را وارد کنید");
+                      e.currentTarget.setCustomValidity(
+                        "لطفاً نام کامل را وارد کنید"
+                      );
                     }}
                     onInput={(e) => {
                       e.currentTarget.setCustomValidity("");
@@ -334,7 +324,7 @@ export default function EditProfileModal({
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                  محل آشنایی *
+                    محل آشنایی *
                   </label>
                   <Select
                     name="source"
@@ -384,4 +374,3 @@ export default function EditProfileModal({
     </ModalPortal>
   );
 }
-
