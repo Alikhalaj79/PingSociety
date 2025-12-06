@@ -11,7 +11,7 @@ export default function Header() {
   const router = useRouter();
   const [navigationLoading, setNavigationLoading] = useState(false);
 
-  // Instagram icon SVG
+  // Instagram icon SVG - matches the design
   const InstagramIcon = () => (
     <svg
       className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
@@ -23,26 +23,34 @@ export default function Header() {
       strokeLinejoin="round"
     >
       <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
-      <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
-      <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="17.5" cy="6.5" r="1" />
     </svg>
   );
 
-  // Ticket icon SVG
+  // Ticket icon SVG - with perforations like in the image
   const TicketIcon = () => (
     <svg
       className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
-      strokeWidth="2"
+      strokeWidth="1.5"
       strokeLinecap="round"
       strokeLinejoin="round"
     >
-      <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z" />
-      <path d="M13 5v2" />
-      <path d="M13 17v2" />
-      <path d="M13 11v2" />
+      {/* Main ticket rectangle */}
+      <rect x="5" y="7" width="14" height="10" rx="1" />
+      {/* Left semi-circle cutouts */}
+      <path d="M5 10 A1.5 1.5 0 0 1 5 7" fill="none" />
+      <path d="M5 14 A1.5 1.5 0 0 0 5 17" fill="none" />
+      {/* Right semi-circle cutouts */}
+      <path d="M19 10 A1.5 1.5 0 0 0 19 7" fill="none" />
+      <path d="M19 14 A1.5 1.5 0 0 1 19 17" fill="none" />
+      {/* Three dots in center (perforations) */}
+      <circle cx="12" cy="9.5" r="0.6" fill="currentColor" />
+      <circle cx="12" cy="12" r="0.6" fill="currentColor" />
+      <circle cx="12" cy="14.5" r="0.6" fill="currentColor" />
     </svg>
   );
 
@@ -83,9 +91,9 @@ export default function Header() {
 
           {/* Action Buttons - Right side */}
           <div className="flex items-start gap-0 z-50 pt-0">
-            {/* Buttons in horizontal layout */}
-            <div className="bg-transparent flex flex-row gap-0 items-center">
-              {/* Ticket Button */}
+            {/* Buttons in horizontal layout - matching the image design */}
+            <div className="bg-transparent flex flex-row gap-0 items-center rounded-bl-lg overflow-hidden">
+              {/* Event Button - Dark blue background, white icon, orange-red text */}
               <button
                 onClick={() => {
                   const eventsSection = document.getElementById("events");
@@ -96,20 +104,20 @@ export default function Header() {
                     });
                   }
                 }}
-                className="flex flex-col items-center justify-center bg-[#080358] hover:bg-[#0a0448] rounded-md p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] shadow-md cursor-pointer"
+                className="flex flex-col items-center justify-center bg-[#080358] hover:bg-[#0a0448] p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer rounded-bl-lg"
               >
                 <div className="text-white">
                   <TicketIcon />
                 </div>
-                <span className="text-red-400 text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
-                Events
+                <span className="text-[#F84920] text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
+                  Event
                 </span>
               </button>
 
-              {/* Log in / User Button */}
+              {/* Log in Button - White background, orange-red icon and text */}
               {isLoading || navigationLoading ? (
-                <div className="flex flex-col items-center justify-center bg-white/30 rounded-md p-1 sm:p-1.5 md:p-2 min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] shadow-md">
-                  <div className="text-orange-600 flex items-center justify-center animate-spin">
+                <div className="flex flex-col items-center justify-center bg-white p-1 sm:p-1.5 md:p-2 min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px]">
+                  <div className="text-[#F84920] flex items-center justify-center animate-spin">
                     <svg
                       className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
                       viewBox="0 0 24 24"
@@ -124,7 +132,7 @@ export default function Header() {
                     </svg>
                   </div>
                   {!isAuthenticated && !isLoading && (
-                    <span className="text-orange-600 text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
+                    <span className="text-[#F84920] text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
                       Log in
                     </span>
                   )}
@@ -135,9 +143,9 @@ export default function Header() {
                     setNavigationLoading(true);
                     router.push("/dashboard");
                   }}
-                  className="flex flex-col items-center justify-center bg-white hover:bg-gray-100 rounded-md p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] shadow-md cursor-pointer"
+                  className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer"
                 >
-                  <div className="text-orange-600 flex items-center justify-center">
+                  <div className="text-[#F84920] flex items-center justify-center">
                     <UserIcon />
                   </div>
                 </button>
@@ -147,30 +155,30 @@ export default function Header() {
                     setNavigationLoading(true);
                     router.push("/register");
                   }}
-                  className="flex flex-col items-center justify-center bg-white hover:bg-gray-100 rounded-md p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] shadow-md cursor-pointer"
+                  className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer"
                 >
-                  <div className="text-orange-600 flex items-center justify-center">
+                  <div className="text-[#F84920] flex items-center justify-center">
                     <span className="material-symbols-outlined text-base sm:text-lg md:text-xl">
                       input
                     </span>
                   </div>
-                  <span className="text-orange-600 text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
+                  <span className="text-[#F84920] text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
                     Log in
                   </span>
                 </button>
               )}
 
-              {/* Follow/Instagram Button */}
+              {/* Follow/Instagram Button - Dark blue background, white icon, orange-red text */}
               <a
                 href="https://www.instagram.com/thepingsociety"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex flex-col items-center justify-center bg-[#080358] hover:bg-[#0a0448] rounded-md p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] shadow-md relative group"
+                className="flex flex-col items-center justify-center bg-[#080358] hover:bg-[#0a0448] p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] relative group"
               >
                 <div className="text-white">
                   <InstagramIcon />
                 </div>
-                <span className="text-red-400 text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
+                <span className="text-[#F84920] text-[9px] sm:text-[10px] md:text-xs font-medium mt-0.5">
                   Follow
                 </span>
                 {/* Tooltip showing URL on hover */}
