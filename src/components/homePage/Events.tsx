@@ -101,7 +101,7 @@ export default function Events() {
     return (
       <section
         id="events"
-        className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#0c0c22] to-black"
+        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
       >
         <Container>
           <div className="text-center mb-12">
@@ -130,7 +130,7 @@ export default function Events() {
     return (
       <section
         id="events"
-        className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#0c0c22] to-black"
+        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
       >
         <Container>
           <div className="text-center">
@@ -159,7 +159,7 @@ export default function Events() {
     return (
       <section
         id="events"
-        className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#0c0c22] to-black"
+        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
       >
         <Container>
           <div className="text-center">
@@ -176,7 +176,7 @@ export default function Events() {
   return (
     <section
       id="events"
-      className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#0c0c22] to-black relative overflow-hidden"
+      className="py-12 sm:py-16 md:py-20 bg-[#080358] relative overflow-hidden"
     >
       {/* Background Effects */}
       <div className="absolute inset-0">

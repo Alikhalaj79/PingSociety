@@ -83,7 +83,17 @@ export default function Gallery() {
   ];
 
   return (
-    <section className="py-8 sm:py-12 md:py-16 bg-[#0C0C22] overflow-hidden">
+    <section className="py-8 sm:py-12 md:py-16 bg-gradient-to-b from-white to-[#080358] overflow-hidden">
+      {/* Top dashed line */}
+      <div className="w-full mb-6 sm:mb-8 md:mb-10">
+        <div
+          style={{
+            height: "6px",
+            backgroundImage: "repeating-linear-gradient(to right, #f84920 0, #f84920 10px, transparent 10px, transparent 20px)",
+          }}
+        ></div>
+      </div>
+      
       <div className="w-full">
         <div
           className="keen-slider"
@@ -106,6 +116,16 @@ export default function Gallery() {
             </div>
           ))}
         </div>
+      </div>
+      
+      {/* Bottom dashed line */}
+      <div className="w-full mt-6 sm:mt-8 md:mt-10">
+        <div
+          style={{
+            height: "6px",
+            backgroundImage: "repeating-linear-gradient(to right, #f84920 0, #f84920 10px, transparent 10px, transparent 20px)",
+          }}
+        ></div>
       </div>
     </section>
   );

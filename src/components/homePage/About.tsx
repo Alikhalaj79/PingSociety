@@ -2,13 +2,16 @@ import { SmallContainer } from "../Container";
 
 export default function About() {
   return (
-    <section className="py-12 sm:py-16 md:py-20 bg-[#0c0c22]">
+    <section className="py-12 sm:py-16 md:py-20 bg-white">
       <SmallContainer>
-        <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-6 sm:mb-8 text-center">
-          <span className="text-white">درباره</span>{" "}
+        <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-6 sm:mb-8 text-center">
+          <span className="text-[#080358]">درباره</span>{" "}
           <span className="text-[#f84920]">ایونت</span>
         </h2>
-        <p className="text-base sm:text-lg md:text-xl text-white leading-relaxed text-justify text-right">
+        <p
+          className="text-lg sm:text-xl md:text-2xl text-[#080358] font-bold leading-relaxed"
+          style={{ textAlign: "justify", direction: "rtl" }}
+        >
           ما هر سری یه موضوع برای ایونت در نظر می‌ گیریم و حول محور اون موضوع
           صحبت می‌ کنیم. تسهیل‌ گرامون بحث رو شروع می کنن و همه‌ی ما داخل اون
           بحث شرکت می‌ کنیم. موضوع‌ ها می‌ تونه درباره‌ی{" "}

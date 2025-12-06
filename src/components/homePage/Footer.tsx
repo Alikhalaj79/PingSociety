@@ -6,13 +6,13 @@ import Container from "../Container";
 
 export default function Footer() {
   return (
-    <footer className="bg-black py-3 sm:py-4 border-t border-white/10">
+    <footer className="bg-[#080358] py-3 sm:py-4 border-t border-white/10">
       <Container className="max-w-6xl mx-auto">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 md:gap-0">
           <div className="mb-4 md:mb-0 flex items-center gap-4">
             <div className="mb-0 mt-0">
               <Image
-                src="/logo3.png"
+                src="/logo2.png"
                 alt="PingSociety Logo"
                 width={300}
                 height={100}
