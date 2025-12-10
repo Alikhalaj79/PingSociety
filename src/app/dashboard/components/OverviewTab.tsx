@@ -147,6 +147,8 @@ interface OverviewTabProps {
   tickets: Ticket[];
   orders: Order[];
   loading?: boolean;
+  onCancelClick?: (orderId: string | number) => void;
+  cancelingOrders?: Set<string | number>;
 }
 
 const getStatusColor = (status: string) => {
@@ -227,12 +229,12 @@ export default function OverviewTab({
   tickets,
   orders,
   loading = false,
+  onCancelClick,
+  cancelingOrders = new Set(),
 }: OverviewTabProps) {
   const activeOrders = orders.filter((order) => {
     const status = order.status?.toUpperCase();
-    return (
-      status === "PENDING" || status === "FAILED" || status === "CANCELLED"
-    );
+    return status === "PENDING" || status === "FAILED";
   });
 
   const hasTickets = tickets && tickets.length > 0;
@@ -305,6 +307,14 @@ export default function OverviewTab({
     } catch (error) {
       console.error("Error finalizing order:", error);
       toast.error("خطا در ارتباط با سرور");
+    }
+  };
+
+  const handleCancelClick = (e: React.MouseEvent, orderId: string | number) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (onCancelClick) {
+      onCancelClick(orderId);
     }
   };
 
@@ -545,29 +555,7 @@ export default function OverviewTab({
                             {/* Event Date, Location, Price, Used At - unchanged */}
                           </div>
 
-                          <div className="flex items-center justify-between mt-auto">
-                            <Link
-                              href={event?.id ? `/events/${event.id}` : "#"}
-                              className="flex items-center text-sm font-semibold transition-colors"
-                              style={{ color: "#f84920" }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              مشاهده جزئیات
-                              <svg
-                                className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                style={{ color: "#f84920" }}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 19l-7-7 7-7"
-                                />
-                              </svg>
-                            </Link>
+                          <div className="flex items-center justify-end mt-auto">
                             {ticket.status?.toUpperCase() === "ACTIVE" &&
                               ticket.qrCode && (
                                 <button
@@ -604,7 +592,7 @@ export default function OverviewTab({
                   سفارش‌های من
                 </h3>
                 <span className="text-sm text-white/60">
-                  {activeOrders.length} سفارش فعال یا لغو شده
+                  {activeOrders.length} سفارش فعال
                 </span>
               </div>
               <div className="space-y-4">
@@ -640,53 +628,44 @@ export default function OverviewTab({
                             )}
                           </div>
 
-                          {order.status?.toUpperCase() === "CANCELLED" &&
-                            order.cancelledReason && (
-                              <p className="text-red-400 text-sm mb-2 text-right">
-                                دلیل: {order.cancelledReason}
-                              </p>
-                            )}
-
                           {/* بقیه details orders (date, price, etc. - unchanged) */}
 
-                          <div className="flex items-center justify-between mt-auto">
-                            <Link
-                              href={event?.id ? `/events/${event.id}` : "#"}
-                              className="flex items-center text-sm font-semibold transition-colors"
-                              style={{ color: "#f84920" }}
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              مشاهده جزئیات
-                              <svg
-                                className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                                style={{ color: "#f84920" }}
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M15 19l-7-7 7-7"
-                                />
-                              </svg>
-                            </Link>
-                            <div className="flex flex-col gap-2">
-                              {(order.status?.toUpperCase() === "PENDING" ||
-                                order.status?.toUpperCase() ===
-                                  "CANCELLED") && (
-                                <button
-                                  onClick={(e) =>
-                                    handleFinalizeOrder(e, order.id)
-                                  }
-                                  className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap w-fit"
-                                >
-                                  {order.status?.toUpperCase() === "CANCELLED"
-                                    ? "تلاش مجدد"
-                                    : "نهایی کردن سفارش"}
-                                </button>
-                              )}
+                          <div className="flex items-center justify-end mt-auto">
+                            <div className="flex flex-row gap-2">
+                              {(() => {
+                                const status = order.status?.toUpperCase();
+                                const isPending = status === "PENDING";
+                                const isCanceling = cancelingOrders.has(
+                                  order.id
+                                );
+
+                                return (
+                                  <>
+                                    {isPending && (
+                                      <>
+                                        <button
+                                          onClick={(e) =>
+                                            handleCancelClick(e, order.id)
+                                          }
+                                          disabled={isCanceling}
+                                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          لغو سفارش
+                                        </button>
+                                        <button
+                                          onClick={(e) =>
+                                            handleFinalizeOrder(e, order.id)
+                                          }
+                                          disabled={isCanceling}
+                                          className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                        >
+                                          نهایی کردن سفارش
+                                        </button>
+                                      </>
+                                    )}
+                                  </>
+                                );
+                              })()}
                             </div>
                           </div>
                         </div>
@@ -697,19 +676,6 @@ export default function OverviewTab({
               </div>
             </div>
           )}
-
-          {/* Invitation section (unchanged) */}
-          <div className="mt-8 pt-6 border-t border-white/10">
-            <div className="text-center bg-gradient-to-br from-[#F84920]/10 to-purple-500/10 rounded-xl p-6 border border-[#F84920]/20">
-              <p className="text-white/80 mb-3">رویدادهای بیشتری کشف کنید</p>
-              <Link
-                href="/"
-                className="inline-block bg-[#F84920] text-white px-6 py-2 rounded-lg hover:bg-[#e63e1a] transition-colors font-medium"
-              >
-                مشاهده همه رویدادها
-              </Link>
-            </div>
-          </div>
         </div>
       )}
 

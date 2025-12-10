@@ -6,6 +6,7 @@ import Container from "@/components/Container";
 import Link from "next/link";
 import OverviewTab from "./components/OverviewTab";
 import UserInfoSidebar from "./components/UserInfoSidebar";
+import toast from "react-hot-toast";
 
 interface User {
   id: number;
@@ -52,6 +53,12 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
   const [loading, setLoading] = useState(!initialUser);
   const [dataLoading, setDataLoading] = useState(false);
   const [error, setError] = useState("");
+  const [cancelingOrders, setCancelingOrders] = useState<Set<string | number>>(
+    new Set()
+  );
+  const [cancelConfirmOrderId, setCancelConfirmOrderId] = useState<
+    string | number | null
+  >(null);
   // Tabs removed; show combined content in main area
   // const _router = useRouter();
 
@@ -172,13 +179,62 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
     window.addEventListener("refresh-dashboard", handleRefresh);
     window.addEventListener("focus", handleFocus);
     document.addEventListener("visibilitychange", handleVisibilityChange);
-    
+
     return () => {
       window.removeEventListener("refresh-dashboard", handleRefresh);
       window.removeEventListener("focus", handleFocus);
       document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
+
+  const handleCancelClick = (orderId: string | number) => {
+    setCancelConfirmOrderId(orderId);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!cancelConfirmOrderId) return;
+
+    const orderId = cancelConfirmOrderId;
+    setCancelConfirmOrderId(null);
+
+    try {
+      setCancelingOrders((prev) => new Set(prev).add(orderId));
+      const response = await fetch(`/api/order/${orderId}/cancel`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      console.log("Cancel order response:", data);
+
+      if (response.ok || response.status === 200) {
+        toast.success(data.message || "سفارش با موفقیت لغو شد");
+        // Reload the page to refresh orders
+        if (typeof window !== "undefined") {
+          window.location.reload();
+        }
+      } else {
+        toast.error(data.error || data.message || "خطا در لغو سفارش");
+      }
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      toast.error("خطا در ارتباط با سرور");
+    } finally {
+      setCancelingOrders((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(orderId);
+        return newSet;
+      });
+    }
+  };
+
+  const handleCancelCancel = () => {
+    setCancelConfirmOrderId(null);
+  };
 
   if (loading) {
     return (
@@ -238,10 +294,51 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
           </div>
           <div className="flex-1">
             <div className="bg-[#080358]/60 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
-              <OverviewTab tickets={tickets} orders={orders} loading={dataLoading} />
+              <OverviewTab
+                tickets={tickets}
+                orders={orders}
+                loading={dataLoading}
+                onCancelClick={handleCancelClick}
+                cancelingOrders={cancelingOrders}
+              />
             </div>
           </div>
         </div>
+
+        {/* Cancel Confirmation Modal */}
+        {cancelConfirmOrderId && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+            <div
+              className="bg-gradient-to-br from-[#080358] to-[#0a0440] rounded-2xl border border-white/20 p-6 max-w-md w-full relative"
+              dir="rtl"
+            >
+              <h3 className="text-xl font-bold text-white mb-4">
+                تأیید لغو سفارش
+              </h3>
+              <p className="text-white/80 mb-6">
+                آیا مطمئن هستید که می‌خواهید این سفارش را لغو کنید؟
+              </p>
+              <div className="flex items-center gap-3 justify-end">
+                <button
+                  onClick={handleCancelCancel}
+                  disabled={cancelingOrders.has(cancelConfirmOrderId)}
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  انصراف
+                </button>
+                <button
+                  onClick={handleCancelConfirm}
+                  disabled={cancelingOrders.has(cancelConfirmOrderId)}
+                  className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {cancelingOrders.has(cancelConfirmOrderId)
+                    ? "در حال لغو..."
+                    : "بله، لغو کن"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Container>
   );

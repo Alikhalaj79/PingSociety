@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import ModalPortal from "@/components/ModalPortal";
 import toast from "react-hot-toast";
 
@@ -39,7 +38,9 @@ export default function OrderCardModal({
 }: OrderCardModalProps) {
   const [showModal, setShowModal] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCanceling, setIsCanceling] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
@@ -52,6 +53,9 @@ export default function OrderCardModal({
   }, [isOpen]);
 
   if (!order || !isOpen) return null;
+
+  // Debug: Log order status
+  console.log("Order status:", order.status, "Order ID:", order.id);
 
   const event = order.event;
   const eventTitle = event?.title || `سفارش #${order.id}`;
@@ -132,6 +136,50 @@ export default function OrderCardModal({
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleCancelClick = () => {
+    setShowCancelConfirm(true);
+  };
+
+  const handleCancelConfirm = async () => {
+    if (!order?.id) return;
+
+    setShowCancelConfirm(false);
+    try {
+      setIsCanceling(true);
+      const response = await fetch(`/api/order/${order.id}/cancel`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        credentials: "include",
+      });
+
+      const data = await response.json();
+      console.log("Cancel order response:", data);
+
+      if (response.ok || response.status === 200) {
+        toast.success(data.message || "سفارش با موفقیت لغو شد");
+        closeModal();
+        // Reload the page or refresh orders list
+        if (typeof window !== "undefined") {
+          window.location.reload();
+        }
+      } else {
+        toast.error(data.error || data.message || "خطا در لغو سفارش");
+      }
+    } catch (error) {
+      console.error("Error canceling order:", error);
+      toast.error("خطا در ارتباط با سرور");
+    } finally {
+      setIsCanceling(false);
+    }
+  };
+
+  const handleCancelCancel = () => {
+    setShowCancelConfirm(false);
   };
 
   const closeModal = () => {
@@ -291,42 +339,39 @@ export default function OrderCardModal({
                       )}
                     </div>
 
-                    <div className="flex items-center justify-between mt-auto pt-4 border-t border-white/10">
-                      {event?.id && (
-                        <Link
-                          href={`/events/${event.id}`}
-                          className="flex items-center text-sm font-semibold transition-colors"
-                          style={{ color: "#f84920" }}
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          مشاهده جزئیات
-                          <svg
-                            className="w-4 h-4 mr-2 transform group-hover:translate-x-1 transition-transform"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
-                            style={{ color: "#f84920" }}
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M15 19l-7-7 7-7"
-                            />
-                          </svg>
-                        </Link>
-                      )}
-                      {order.status?.toUpperCase() === "PENDING" && (
-                        <button
-                          onClick={handleFinalizeOrder}
-                          disabled={isProcessing}
-                          className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-6 py-3 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isProcessing
-                            ? "در حال پردازش..."
-                            : "نهایی کردن سفارش"}
-                        </button>
-                      )}
+                    <div className="flex items-center justify-end mt-auto pt-4 border-t border-white/10">
+                      <div className="flex items-center gap-3">
+                        {(() => {
+                          const status = order.status?.toUpperCase();
+                          const isPending = status === "PENDING";
+                          const canCancel = isPending || !status;
+
+                          return (
+                            <>
+                              {canCancel && (
+                                <button
+                                  onClick={handleCancelClick}
+                                  disabled={isCanceling || isProcessing}
+                                  className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  لغو سفارش
+                                </button>
+                              )}
+                              {isPending && (
+                                <button
+                                  onClick={handleFinalizeOrder}
+                                  disabled={isProcessing || isCanceling}
+                                  className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-6 py-3 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {isProcessing
+                                    ? "در حال پردازش..."
+                                    : "نهایی کردن سفارش"}
+                                </button>
+                              )}
+                            </>
+                          );
+                        })()}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -335,6 +380,39 @@ export default function OrderCardModal({
           </div>
         </div>
       </div>
+
+      {/* Cancel Confirmation Modal */}
+      {showCancelConfirm && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+          <div
+            className="bg-gradient-to-br from-[#080358] to-[#0a0440] rounded-2xl border border-white/20 p-6 max-w-md w-full relative"
+            dir="rtl"
+          >
+            <h3 className="text-xl font-bold text-white mb-4">
+              تأیید لغو سفارش
+            </h3>
+            <p className="text-white/80 mb-6">
+              آیا مطمئن هستید که می‌خواهید این سفارش را لغو کنید؟
+            </p>
+            <div className="flex items-center gap-3 justify-end">
+              <button
+                onClick={handleCancelCancel}
+                disabled={isCanceling}
+                className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                انصراف
+              </button>
+              <button
+                onClick={handleCancelConfirm}
+                disabled={isCanceling}
+                className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-all font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isCanceling ? "در حال لغو..." : "بله، لغو کن"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </ModalPortal>
   );
 }
