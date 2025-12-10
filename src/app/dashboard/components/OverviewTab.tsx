@@ -25,8 +25,8 @@ const QRCodeModal = ({
   const qrValue = typeof qrCode === "string" ? qrCode : JSON.stringify(qrCode);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="bg-gradient-to-br from-gray-800 to-gray-900 rounded-2xl border border-white/20 p-8 max-w-md w-full relative">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#080358]/80 backdrop-blur-sm">
+      <div className="bg-gradient-to-br from-[#080358] to-[#0a0440] rounded-2xl border border-white/20 p-8 max-w-md w-full relative">
         <button
           onClick={onClose}
           className="absolute top-4 left-4 text-white/60 hover:text-white transition-colors"
@@ -345,29 +345,29 @@ export default function OverviewTab({
           {/* Tickets Loading Skeleton */}
           <div>
             <div className="flex items-center justify-between mb-6">
-              <div className="h-7 w-32 bg-white/20 rounded animate-pulse"></div>
-              <div className="h-5 w-24 bg-white/20 rounded animate-pulse"></div>
+              <div className="h-7 w-32 bg-[#080358]/40 rounded animate-pulse"></div>
+              <div className="h-5 w-24 bg-[#080358]/40 rounded animate-pulse"></div>
             </div>
             <div className="space-y-4">
               {[1, 2].map((i) => (
                 <div
                   key={i}
-                  className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row"
+                  className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row"
                 >
-                  <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 bg-white/10 animate-pulse"></div>
+                  <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 bg-[#080358]/30 animate-pulse"></div>
                   <div className="p-6 flex flex-col flex-grow space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="h-6 w-48 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-6 w-20 bg-white/20 rounded-full animate-pulse"></div>
+                      <div className="h-6 w-48 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-6 w-20 bg-[#080358]/40 rounded-full animate-pulse"></div>
                     </div>
                     <div className="space-y-2">
-                      <div className="h-4 w-32 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-4 w-40 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-4 w-36 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-4 w-32 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-4 w-40 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-4 w-36 bg-[#080358]/40 rounded animate-pulse"></div>
                     </div>
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="h-4 w-24 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-8 w-28 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-4 w-24 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-8 w-28 bg-[#080358]/40 rounded animate-pulse"></div>
                     </div>
                   </div>
                 </div>
@@ -378,28 +378,28 @@ export default function OverviewTab({
           {/* Orders Loading Skeleton */}
           <div>
             <div className="flex items-center justify-between mb-6">
-              <div className="h-7 w-32 bg-white/20 rounded animate-pulse"></div>
-              <div className="h-5 w-24 bg-white/20 rounded animate-pulse"></div>
+              <div className="h-7 w-32 bg-[#080358]/40 rounded animate-pulse"></div>
+              <div className="h-5 w-24 bg-[#080358]/40 rounded animate-pulse"></div>
             </div>
             <div className="space-y-4">
               {[1].map((i) => (
                 <div
                   key={i}
-                  className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row"
+                  className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row"
                 >
-                  <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 bg-white/10 animate-pulse"></div>
+                  <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 bg-[#080358]/30 animate-pulse"></div>
                   <div className="p-6 flex flex-col flex-grow space-y-4">
                     <div className="flex items-center justify-between">
-                      <div className="h-6 w-48 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-6 w-48 bg-[#080358]/40 rounded animate-pulse"></div>
                     </div>
-                    <div className="h-4 w-full bg-white/20 rounded animate-pulse"></div>
+                    <div className="h-4 w-full bg-[#080358]/40 rounded animate-pulse"></div>
                     <div className="space-y-2">
-                      <div className="h-4 w-32 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-4 w-36 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-4 w-32 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-4 w-36 bg-[#080358]/40 rounded animate-pulse"></div>
                     </div>
                     <div className="flex items-center justify-between mt-auto">
-                      <div className="h-4 w-24 bg-white/20 rounded animate-pulse"></div>
-                      <div className="h-8 w-32 bg-white/20 rounded animate-pulse"></div>
+                      <div className="h-4 w-24 bg-[#080358]/40 rounded animate-pulse"></div>
+                      <div className="h-8 w-32 bg-[#080358]/40 rounded animate-pulse"></div>
                     </div>
                   </div>
                 </div>
@@ -409,7 +409,7 @@ export default function OverviewTab({
         </div>
       ) : !hasAnyData ? (
         // Empty state (unchanged)
-        <div className="text-center py-16 bg-gradient-to-br from-white/5 to-white/10 rounded-2xl border border-white/20">
+        <div className="text-center py-16 bg-gradient-to-br from-[#080358]/40 to-[#0a0440]/40 rounded-2xl border border-white/20">
           <div className="max-w-md mx-auto space-y-6">
             <div className="text-7xl mb-4">🎉</div>
             <h3 className="text-2xl font-bold text-white mb-2">
@@ -470,7 +470,7 @@ export default function OverviewTab({
 
                   return (
                     <div key={String(ticket.id)} className="group block">
-                      <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col md:flex-row">
+                      <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col md:flex-row">
                         <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 overflow-hidden">
                           {hasValidImage ? (
                             <Image
@@ -618,7 +618,7 @@ export default function OverviewTab({
 
                   return (
                     <div key={String(order.id)} className="group block">
-                      <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col md:flex-row">
+                      <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col md:flex-row">
                         {/* Image div (unchanged) */}
                         <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 overflow-hidden">
                           {/* Image or placeholder */}

@@ -154,21 +154,10 @@ export default function EditProfileModal({
       return;
     }
 
-    if (!profileData.email || profileData.email.trim() === "") {
-      setMessage("ایمیل الزامی است");
-      setIsSaving(false);
-      return;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(profileData.email)) {
-      setMessage("فرمت ایمیل معتبر نیست");
-      setIsSaving(false);
-      return;
-    }
-
-    if (!profileData.fieldOfActivity || profileData.fieldOfActivity.trim() === "") {
+    if (
+      !profileData.fieldOfActivity ||
+      profileData.fieldOfActivity.trim() === ""
+    ) {
       setMessage("زمینه فعالیت الزامی است");
       setIsSaving(false);
       return;
@@ -238,8 +227,8 @@ export default function EditProfileModal({
           aria-labelledby="edit-profile-title"
         >
           <div className="p-[1px] rounded-2xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 shadow-[0_20px_70px_rgba(0,0,0,0.6)]">
-            <div className="rounded-2xl bg-[#0C0C22] text-white border border-white/10 overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#0C0C22]/95">
+            <div className="rounded-2xl bg-[#080358] text-white border border-white/10 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#080358]/95">
                 <h4 id="edit-profile-title" className="text-xl font-bold">
                   ویرایش اطلاعات کاربری
                 </h4>
@@ -269,7 +258,9 @@ export default function EditProfileModal({
                     required
                     title="لطفاً نام کامل را وارد کنید"
                     onInvalid={(e) => {
-                      e.currentTarget.setCustomValidity("لطفاً نام کامل را وارد کنید");
+                      e.currentTarget.setCustomValidity(
+                        "لطفاً نام کامل را وارد کنید"
+                      );
                     }}
                     onInput={(e) => {
                       e.currentTarget.setCustomValidity("");
@@ -334,7 +325,7 @@ export default function EditProfileModal({
 
                 <div>
                   <label className="block text-white/80 text-sm mb-2">
-                  محل آشنایی *
+                    محل آشنایی *
                   </label>
                   <Select
                     name="source"
@@ -384,4 +375,3 @@ export default function EditProfileModal({
     </ModalPortal>
   );
 }
-

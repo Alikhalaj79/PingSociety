@@ -237,7 +237,7 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
             <UserInfoSidebar user={user} />
           </div>
           <div className="flex-1">
-            <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
+            <div className="bg-[#080358]/60 backdrop-blur-lg rounded-2xl p-6 border border-white/20">
               <OverviewTab tickets={tickets} orders={orders} loading={dataLoading} />
             </div>
           </div>

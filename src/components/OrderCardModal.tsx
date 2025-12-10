@@ -71,9 +71,7 @@ export default function OrderCardModal({
 
   // Check if image exists and is valid
   const hasImageData =
-    eventImage &&
-    typeof eventImage === "string" &&
-    eventImage.trim() !== "";
+    eventImage && typeof eventImage === "string" && eventImage.trim() !== "";
 
   const isValidImageUrl = (url?: string): boolean => {
     if (!url || typeof url !== "string") return false;
@@ -99,7 +97,8 @@ export default function OrderCardModal({
     return true;
   };
 
-  const hasValidImage = hasImageData && isValidImageUrl(eventImage) && !imageError;
+  const hasValidImage =
+    hasImageData && isValidImageUrl(eventImage) && !imageError;
 
   const handleFinalizeOrder = async () => {
     try {
@@ -164,8 +163,8 @@ export default function OrderCardModal({
           aria-labelledby="order-card-title"
         >
           <div className="p-[1px] rounded-2xl bg-gradient-to-br from-white/20 via-white/10 to-white/5 shadow-[0_20px_70px_rgba(0,0,0,0.6)]">
-            <div className="rounded-2xl bg-[#0C0C22] text-white border border-white/10 overflow-hidden">
-              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#0C0C22]/95">
+            <div className="rounded-2xl bg-[#080358] text-white border border-white/10 overflow-hidden">
+              <div className="px-6 py-4 border-b border-white/10 flex items-center justify-between bg-[#080358]/95">
                 <h4 id="order-card-title" className="text-xl font-bold">
                   سفارش شما
                 </h4>
@@ -179,7 +178,7 @@ export default function OrderCardModal({
               </div>
 
               <div className="p-6 max-h-[80vh] overflow-y-auto">
-                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row">
+                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 flex flex-col md:flex-row">
                   {/* Image */}
                   <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 overflow-hidden">
                     {hasValidImage ? (
@@ -323,7 +322,9 @@ export default function OrderCardModal({
                           disabled={isProcessing}
                           className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-6 py-3 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          {isProcessing ? "در حال پردازش..." : "نهایی کردن سفارش"}
+                          {isProcessing
+                            ? "در حال پردازش..."
+                            : "نهایی کردن سفارش"}
                         </button>
                       )}
                     </div>
@@ -337,4 +338,3 @@ export default function OrderCardModal({
     </ModalPortal>
   );
 }
-

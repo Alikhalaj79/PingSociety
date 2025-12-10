@@ -596,19 +596,105 @@ export default function EventDetailPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-[#080358] text-white">
         <Header />
-        <div className="py-20">
+        
+        {/* Hero Section Skeleton */}
+        <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
+          <div className="w-full h-full bg-[#080358]/40 animate-pulse"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-[#080358] via-[#080358]/50 to-transparent"></div>
+        </section>
+
+        {/* Main Content Skeleton */}
+        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#080358] to-[#0a0440]">
           <Container>
-            <div className="animate-pulse">
-              <div className="h-8 bg-gray-800 rounded w-1/3 mb-6"></div>
-              <div className="h-64 bg-gray-800 rounded mb-6"></div>
-              <div className="h-6 bg-gray-800 rounded w-2/3 mb-4"></div>
-              <div className="h-4 bg-gray-800 rounded w-full mb-2"></div>
-              <div className="h-4 bg-gray-800 rounded w-5/6"></div>
+            <div className="grid lg:grid-cols-3 gap-8 animate-pulse">
+              {/* Main Content - Left Side */}
+              <div className="lg:col-span-2 space-y-8">
+                {/* Title, Description Section */}
+                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
+                  {/* Title */}
+                  <div className="h-10 bg-[#080358]/40 rounded w-3/4"></div>
+                  
+                  {/* Description Section */}
+                  <div className="space-y-4">
+                    <div className="h-6 bg-[#080358]/40 rounded w-1/3"></div>
+                    <div className="space-y-2">
+                      <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
+                      <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
+                      <div className="h-4 bg-[#080358]/40 rounded w-5/6"></div>
+                      <div className="h-4 bg-[#080358]/40 rounded w-4/5"></div>
+                    </div>
+                  </div>
+
+                  {/* Moderators Section */}
+                  <div className="space-y-4">
+                    <div className="h-6 bg-[#080358]/40 rounded w-1/4"></div>
+                    <div className="flex flex-wrap gap-3 justify-end">
+                      <div className="h-8 bg-[#080358]/40 rounded-full w-24"></div>
+                      <div className="h-8 bg-[#080358]/40 rounded-full w-32"></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Sponsors Section */}
+                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+                  <div className="h-6 bg-[#080358]/40 rounded w-1/4 mb-4"></div>
+                  <div className="flex flex-wrap gap-3 justify-end">
+                    <div className="h-6 bg-[#080358]/40 rounded w-20"></div>
+                    <div className="h-6 bg-[#080358]/40 rounded w-28"></div>
+                    <div className="h-6 bg-[#080358]/40 rounded w-24"></div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Sidebar - Right Side */}
+              <div className="lg:col-span-1">
+                <div className="sticky top-24 space-y-6">
+                  {/* Event Info Card */}
+                  <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                    <div className="h-6 bg-[#080358]/40 rounded w-1/2 mb-6"></div>
+                    
+                    <div className="space-y-4">
+                      {/* Date */}
+                      <div className="flex items-start gap-3 flex-row-reverse">
+                        <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-[#080358]/40 rounded w-20"></div>
+                          <div className="h-5 bg-[#080358]/40 rounded w-32"></div>
+                        </div>
+                      </div>
+
+                      {/* Location */}
+                      <div className="flex items-start gap-3 flex-row-reverse">
+                        <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
+                          <div className="h-5 bg-[#080358]/40 rounded w-40"></div>
+                        </div>
+                      </div>
+
+                      {/* Price */}
+                      <div className="flex items-start gap-3 flex-row-reverse">
+                        <div className="flex-1 space-y-2">
+                          <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
+                          <div className="h-5 bg-[#080358]/40 rounded w-24"></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Register Button */}
+                  <div className="h-14 bg-[#080358]/40 rounded-xl"></div>
+
+                  {/* Back Button */}
+                  <div className="h-12 bg-[#080358]/30 rounded-xl border border-white/10"></div>
+                </div>
+              </div>
             </div>
           </Container>
-        </div>
+        </section>
+
         <Footer />
       </div>
     );
@@ -616,7 +702,7 @@ export default function EventDetailPage() {
 
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-black text-white">
+      <div className="min-h-screen bg-[#080358] text-white">
         <Header />
         <div className="py-20">
           <Container>
@@ -654,7 +740,7 @@ export default function EventDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#080358] text-white">
       <Header />
 
       {/* Hero Section with Image */}
@@ -682,13 +768,13 @@ export default function EventDetailPage() {
       </section>
 
       {/* Main Content */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-black to-[#0c0c22]">
+      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#080358] to-[#0a0440]">
         <Container>
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Main Content - Left Side */}
             <div className="lg:col-span-2 space-y-8">
               {/* Title, Description and Moderators Section */}
-              <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
+              <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
                 {/* Title */}
                 <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-right bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
                   {event.title}
@@ -733,7 +819,7 @@ export default function EventDetailPage() {
 
               {/* Sponsors */}
               {event.sponsors && event.sponsors.length > 0 && (
-                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
                   <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
                     اسپانسرها
                   </h2>
