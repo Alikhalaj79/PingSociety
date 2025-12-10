@@ -2,11 +2,9 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
-import Container from "@/components/Container";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
-
 
 function OTPContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
@@ -218,121 +216,124 @@ function OTPContent() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-      <Container>
-        <div className="max-w-md mx-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl shadow-2xl p-8 border border-white/20">
-            {/* Header */}
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-white mb-2">
-                تایید شماره موبایل
-              </h1>
-              <p className="text-white/80 text-sm mb-2">
-                کد ۶ رقمی ارسال شده به شماره موبایل خود را وارد کنید
-              </p>
-              {phoneNumber && (
-                <p className="text-[#F84920] font-medium text-sm">
-                  {phoneNumber.replace(/(\d{4})(\d{3})(\d{4})/, "$1 $2 $3")}
-                </p>
-              )}
+    <div className="min-h-screen bg-[#080358] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
+      <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center">
+        {/* Development OTP Code Display - Above the form box */}
+        {devOtpCode && (
+          <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
+            <p className="text-yellow-400 text-xs font-medium mb-1">
+              🧪 کد تایید برای تست:
+            </p>
+            <p className="text-yellow-300 text-sm font-bold font-mono">
+              {devOtpCode}
+            </p>
+            <button
+              onClick={handleAutoFillOtp}
+              className="mt-1 px-2 py-1 bg-yellow-500/30 text-yellow-300 text-xs rounded hover:bg-yellow-500/40 transition-colors"
+            >
+              Auto Fill
+            </button>
+          </div>
+        )}
 
-              {/* Development OTP Code Display */}
-              {devOtpCode && (
-                <div className="mt-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-                  <p className="text-yellow-400 text-sm font-medium mb-2">
-                    🧪 کد تایید برای تست:
-                  </p>
-                  <p className="text-yellow-300 text-lg font-bold font-mono">
-                    {devOtpCode}
-                  </p>
-                  <button
-                    onClick={handleAutoFillOtp}
-                    className="mt-2 px-3 py-1 bg-yellow-500/30 text-yellow-300 text-xs rounded hover:bg-yellow-500/40 transition-colors"
-                  >
-                    Auto Fill
-                  </button>
-                </div>
-              )}
+        <div className="bg-[#080358]/60 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.3)] p-10 border border-white/30 w-[400px] h-[400px] flex flex-col items-center justify-center">
+          {/* Header */}
+          <div className="text-center flex flex-col items-center mb-4">
+            <h1 className="text-5xl font-bold text-white mb-1 w-[218px] h-[60px] flex items-center justify-center mx-auto">
+              تایید شماره
+            </h1>
+            {phoneNumber && (
+              <p className="text-[#F84920] font-medium text-sm mb-2">
+                {phoneNumber.replace(/(\d{4})(\d{3})(\d{4})/, "$1 $2 $3")}
+              </p>
+            )}
+            <p className="text-white font-medium text-lg ">
+              کد ۶ رقمی ارسال شده را وارد کنید
+            </p>
+          </div>
+
+          {/* Error Display */}
+          {error && (
+            <p className="text-sm text-red-400 text-center mb-2">{error}</p>
+          )}
+
+          {/* OTP Form */}
+          <form
+            onSubmit={handleSubmit}
+            className="flex flex-col items-center space-y-4 w-full"
+          >
+            {/* OTP Inputs */}
+            <div className="flex justify-center gap-3">
+              {otp.map((digit, index) => (
+                <input
+                  key={index}
+                  id={`otp-${index}`}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpChange(index, e.target.value)}
+                  onKeyDown={(e) => handleKeyDown(index, e)}
+                  onPaste={index === 0 ? handlePaste : undefined}
+                  className="w-[35px] h-[50px] text-center text-xl font-bold bg-white rounded-[15px] focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 mx-0.5"
+                  style={{
+                    boxShadow: " 5px 5px 5px 0px rgba(0, 0, 0, 0.5) inset",
+                  }}
+                />
+              ))}
             </div>
 
-            {/* Error Display */}
-            {error && (
-              <div className="mb-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-                <p className="text-red-400 text-sm text-center">{error}</p>
-              </div>
-            )}
-
-            {/* OTP Form */}
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Paste instruction */}
-              <p className="text-white/70 text-sm text-center mb-2">
-                کد ۶ رقمی را وارد کنید یا در اولین فیلد paste کنید
-              </p>
-
-              {/* OTP Inputs */}
-              <div className="flex justify-center gap-4">
-                {otp.map((digit, index) => (
-                  <input
-                    key={index}
-                    id={`otp-${index}`}
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    maxLength={1}
-                    value={digit}
-                    onChange={(e) => handleOtpChange(index, e.target.value)}
-                    onKeyDown={(e) => handleKeyDown(index, e)}
-                    onPaste={index === 0 ? handlePaste : undefined}
-                    className="w-12 h-12 text-center text-2xl font-bold bg-white/20 border border-white/30 rounded-lg text-white placeholder-white/50 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200"
-                    placeholder="0"
-                  />
-                ))}
-              </div>
-
-              {/* Submit Button */}
+            {/* Submit Button */}
+            <div className="w-full flex justify-center">
               <button
                 type="submit"
                 disabled={isLoading || otp.join("").length !== 6}
-                className="w-full bg-[#F84920] text-white py-3 px-4 rounded-lg font-medium hover:bg-[#e63e1a] transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                className="bg-gradient-to-b from-[#F84920] to-[#922E13] text-white w-[150px] h-[50px] rounded-2xl font-semibold hover:from-[#FF6B40] hover:to-[#B03318] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg text-lg flex items-center justify-center mt-2"
               >
                 {isLoading ? "در حال تایید..." : "تایید کد"}
               </button>
+            </div>
 
-              {/* Resend Code */}
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={handleResend}
-                  disabled={isLoading}
-                  className="text-white/80 hover:text-white transition-colors duration-200 text-sm underline disabled:opacity-50"
-                >
-                  ارسال مجدد کد
-                </button>
-              </div>
-            </form>
-
-            {/* Back to Register */}
-            <div className="mt-6 text-center">
+            {/* Resend Code */}
+            <div className="text-center">
               <button
-                onClick={handleBackToRegister}
-                className="text-white/60 hover:text-white transition-colors duration-200 text-sm"
+                type="button"
+                onClick={handleResend}
+                disabled={isLoading}
+                className="text-white hover:text-white transition-colors duration-200 text-sm disabled:opacity-50 hover:cursor-pointer flex items-center justify-center gap-1"
               >
-                تغییر شماره موبایل
+                <span
+                  className="material-symbols-outlined"
+                  style={{ fontSize: "12px" }}
+                >
+                  autorenew
+                </span>
+                ارسال مجدد کد
               </button>
             </div>
+          </form>
+
+          {/* Back to Register */}
+          <div className="mt-4 text-center">
+            <button
+              onClick={handleBackToRegister}
+              className="text-white hover:text-white transition-colors duration-200 text-sm hover:cursor-pointer"
+            >
+              تغییر شماره موبایل
+            </button>
           </div>
         </div>
-      </Container>
+      </div>
     </div>
   );
 }
-
 
 export default function OTPForm() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0C0C22] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="min-h-screen bg-[#080358] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#F84920] mx-auto mb-4"></div>
             <h2 className="text-2xl font-bold text-white">

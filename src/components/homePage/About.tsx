@@ -13,7 +13,7 @@ export default function About() {
           style={{ textAlign: "justify", direction: "rtl" }}
         >
           ما هر سری یه موضوع برای ایونت در نظر می‌ گیریم و حول محور اون موضوع
-          صحبت می‌ کنیم. تسهیل‌ گرامون بحث رو شروع می کنن و همه‌ی ما داخل اون
+          صحبت می‌ کنیم. تسهیلگرامون بحث رو شروع می کنن و همه‌ی ما داخل اون
           بحث شرکت می‌ کنیم. موضوع‌ ها می‌ تونه درباره‌ی{" "}
           <span className="text-[#f84920]">دغدغه‌ ها</span>،{" "}
           <span className="text-[#f84920]">ایده‌ ها</span>،
@@ -27,7 +27,7 @@ export default function About() {
           <span className="text-[#f84920]">فضایی خودمونی</span> و راحت ایجاد
           کنیم تا چند ساعتی که با هم هستیم، هم{" "}
           <span className="text-[#f84920]">خوش بگذره</span> و هم برامون مفید
-          باشه
+          باشه .
         </p>
       </SmallContainer>
     </section>

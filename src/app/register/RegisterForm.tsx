@@ -106,14 +106,14 @@ function RegisterFormContent() {
 
   return (
     <div className="min-h-screen bg-[#080358] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
-      <div className="w-full max-w-lg mx-auto">
-        <div className="bg-[#080358]/60 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.3)] p-10 border border-white/30">
+      <div className="w-full max-w-lg mx-auto flex items-center justify-center">
+        <div className="bg-[#080358]/60 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.3)] p-10 border border-white/30 w-[400px] h-[400px] flex flex-col items-center justify-center">
           {/* Header */}
-          <div className="text-center mb-10">
-            <h1 className="text-4xl font-bold text-white mb-10">
+          <div className="text-center flex flex-col items-center mb-4">
+            <h1 className="text-5xl font-bold text-white mb-7 w-[218px] h-[60px] flex items-center justify-center mx-auto">
               ورود | ثبت نام
             </h1>
-            <p className="text-white font-medium text-lg">
+            <p className="text-white font-bold text-lg mb-4">
               شماره همراه خود را وارد کنید تا کد تایید ارسال شود
             </p>
           </div>
@@ -137,7 +137,7 @@ function RegisterFormContent() {
                 style={{
                   fontFamily: "monospace",
                   letterSpacing: "0.1em",
-                  boxShadow: " 5px 5px 5px 0px rgba(0, 0, 0, 0.5) inset" ,
+                  boxShadow: " 5px 5px 5px 0px rgba(0, 0, 0, 0.5) inset",
                 }}
               />
             </div>
@@ -146,11 +146,11 @@ function RegisterFormContent() {
             )}
 
             {/* Submit Button */}
-            <div className="w-full flex justify-center pt-2">
+            <div className="w-full flex justify-center ">
               <button
                 type="submit"
                 disabled={isLoading || phoneNumber.length !== 11}
-                className="bg-gradient-to-b from-[#F84920] to-[#B03318] text-white py-4 px-12 rounded-xl font-semibold hover:from-[#FF5A30] hover:to-[#C04020] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg text-lg"
+                className="bg-gradient-to-b from-[#F84920] to-[#922E13] text-white w-[150px] h-[50px] rounded-2xl font-semibold hover:from-[#FF6B40] hover:to-[#B03318] transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer shadow-lg text-lg flex items-center justify-center"
               >
                 {isLoading ? "در حال ارسال..." : "ارسال کد تایید"}
               </button>
@@ -158,12 +158,12 @@ function RegisterFormContent() {
           </form>
 
           {/* Back to Home */}
-          <div className="mt-8 text-center">
+          <div className="mt-4 text-center">
             <Link
               href="/"
               className="text-white hover:text-white transition-colors duration-200 text-sm"
             >
-               بازگشت به صفحه اصلی  
+              بازگشت به صفحه اصلی
             </Link>
           </div>
         </div>
