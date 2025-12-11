@@ -9,8 +9,6 @@ interface User {
   id: number;
   phone: string;
   fullname?: string;
-  email?: string;
-  company?: string;
   fieldOfActivity?: string;
   source?: string;
   role: string;
@@ -71,14 +69,6 @@ export default function UserInfoSidebar({ user }: UserInfoSidebarProps) {
         <div className="flex items-center justify-between">
           <span className="text-white/60">شماره موبایل</span>
           <span className="text-white">{user.phone || "نامشخص"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-white/60">ایمیل</span>
-          <span className="text-white">{user.email || "وارد نشده"}</span>
-        </div>
-        <div className="flex items-center justify-between">
-          <span className="text-white/60">شرکت</span>
-          <span className="text-white">{user.company || "وارد نشده"}</span>
         </div>
         <div className="flex items-center justify-between">
           <span className="text-white/60">زمینه فعالیت</span>
