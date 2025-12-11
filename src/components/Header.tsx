@@ -106,10 +106,10 @@ export default function Header() {
               />
             </Link>
 
-            {/* Action Buttons - Right side */}
+            {/* Action Buttons - Right side - Fixed to top */}
             <div className="flex items-start gap-0 z-50 pt-0">
               {/* Buttons in horizontal layout - matching the image design */}
-              <div className="bg-transparent flex flex-row gap-0 items-center rounded-bl-lg overflow-hidden">
+              <div className="bg-transparent flex flex-row gap-0 items-start rounded-bl-lg overflow-hidden">
                 {/* Event Button - Dark blue background, white icon, orange-red text */}
                 <button
                   onClick={() => {
@@ -131,7 +131,7 @@ export default function Header() {
                   </span>
                 </button>
 
-                {/* Log in Button - White background, orange-red icon and text */}
+                {/* Log in Button - White background, orange-red icon and text - Fixed to top */}
                 {isLoading || navigationLoading ? (
                   <div className="flex flex-col items-center justify-center bg-white p-1 sm:p-1.5 md:p-2 min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px]">
                     <div className="text-[#F84920] flex items-center justify-center animate-spin">
@@ -160,7 +160,7 @@ export default function Header() {
                       setNavigationLoading(true);
                       router.push("/dashboard");
                     }}
-                    className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer"
+                    className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[48px] md:min-h-[57px] cursor-pointer"
                   >
                     <div className="text-[#F84920] flex items-center justify-center">
                       <UserIcon />
