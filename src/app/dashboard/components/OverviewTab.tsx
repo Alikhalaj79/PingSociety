@@ -136,6 +136,7 @@ interface Order {
     description?: string;
     startDate?: string;
     image?: string;
+    vicinity?: string;
   };
   ticket?: {
     price?: number;
@@ -597,19 +598,54 @@ export default function OverviewTab({
               </div>
               <div className="space-y-4">
                 {activeOrders.map((order) => {
-                  // Image logic and render (unchanged - abbreviated)
                   const event = order.event;
                   const eventTitle = event?.title || `سفارش #${order.id}`;
                   const eventStartDate = event?.startDate;
                   const eventImage = event?.image;
-                  // ... hasValidImage logic
+
+                  const hasImageData =
+                    eventImage &&
+                    typeof eventImage === "string" &&
+                    eventImage.trim() !== "";
+                  const hasError = imageErrors.has(order.id);
+                  const isValidUrl = hasImageData
+                    ? isValidImageUrl(eventImage)
+                    : false;
+                  const hasValidImage = hasImageData && isValidUrl && !hasError;
 
                   return (
                     <div key={String(order.id)} className="group block">
                       <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 hover:shadow-2xl hover:shadow-purple-500/10 flex flex-col md:flex-row">
-                        {/* Image div (unchanged) */}
                         <div className="relative w-full md:w-48 lg:w-56 h-48 md:h-full md:min-h-[12rem] flex-shrink-0 overflow-hidden">
-                          {/* Image or placeholder */}
+                          {hasValidImage ? (
+                            <Image
+                              src={eventImage!}
+                              alt={eventTitle}
+                              fill
+                              className="object-cover group-hover:scale-110 transition-transform duration-500"
+                              onError={() => handleImageError(order.id)}
+                              sizes="(max-width: 768px) 100vw, (max-width: 1024px) 224px, 336px"
+                              unoptimized
+                              priority={false}
+                            />
+                          ) : (
+                            <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
+                              <svg
+                                className="w-16 h-16 text-white/30"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                />
+                              </svg>
+                            </div>
+                          )}
+                          <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-l from-black/60 via-transparent to-transparent"></div>
                         </div>
 
                         <div className="p-6 flex flex-col flex-grow">
@@ -628,7 +664,91 @@ export default function OverviewTab({
                             )}
                           </div>
 
-                          {/* بقیه details orders (date, price, etc. - unchanged) */}
+                          <div className="space-y-2 mb-4">
+                            {eventStartDate && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-blue-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span>{formatDate(eventStartDate)}</span>
+                              </div>
+                            )}
+                            {event?.vicinity && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-red-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                </svg>
+                                <span>{event.vicinity}</span>
+                              </div>
+                            )}
+                            {order.totalAmount != null && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-yellow-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span className="font-semibold text-white">
+                                  {order.totalAmount.toLocaleString("fa-IR")}{" "}
+                                  ریال
+                                </span>
+                              </div>
+                            )}
+                            {order.createdAt && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span>
+                                  تاریخ ثبت: {formatDate(order.createdAt)}
+                                </span>
+                              </div>
+                            )}
+                          </div>
 
                           <div className="flex items-center justify-end mt-auto">
                             <div className="flex flex-row gap-2">
