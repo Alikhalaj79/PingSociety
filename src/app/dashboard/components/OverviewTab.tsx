@@ -235,7 +235,20 @@ export default function OverviewTab({
 }: OverviewTabProps) {
   const activeOrders = orders.filter((order) => {
     const status = order.status?.toUpperCase();
-    return status === "PENDING" || status === "FAILED";
+
+    // نمایش PENDING و FAILED
+    if (status === "PENDING" || status === "FAILED") {
+      return true;
+    }
+
+    // نمایش CANCELLED فقط اگر حداقل یک payment attempt شده باشد
+    // (یعنی از درگاه لغو شده، نه اینکه کاربر دستی لغو کرده باشد)
+    if (status === "CANCELLED") {
+      const hasPayments = order.payments && order.payments.length > 0;
+      return hasPayments;
+    }
+
+    return false;
   });
 
   const hasTickets = tickets && tickets.length > 0;
@@ -755,6 +768,10 @@ export default function OverviewTab({
                               {(() => {
                                 const status = order.status?.toUpperCase();
                                 const isPending = status === "PENDING";
+                                const isCancelledWithPayments =
+                                  status === "CANCELLED" &&
+                                  order.payments &&
+                                  order.payments.length > 0;
                                 const isCanceling = cancelingOrders.has(
                                   order.id
                                 );
@@ -782,6 +799,17 @@ export default function OverviewTab({
                                           نهایی کردن سفارش
                                         </button>
                                       </>
+                                    )}
+                                    {isCancelledWithPayments && (
+                                      <button
+                                        onClick={(e) =>
+                                          handleFinalizeOrder(e, order.id)
+                                        }
+                                        disabled={isCanceling}
+                                        className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        تلاش مجدد پرداخت
+                                      </button>
                                     )}
                                   </>
                                 );

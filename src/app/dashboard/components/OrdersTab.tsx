@@ -8,6 +8,7 @@ interface Order {
   quantity?: number;
   createdAt?: string;
   event?: { id?: number | string; title?: string };
+  payments?: Array<{ id: number; status: string; amount: number }>;
 }
 
 interface OrdersTabProps {
@@ -31,13 +32,27 @@ const statusClass = (status?: string) => {
 };
 
 export default function OrdersTab({ orders }: OrdersTabProps) {
-  // Filter orders: show PENDING and FAILED orders (not PAID, CONFIRMED, or COMPLETED)
+  // Filter orders: show PENDING, FAILED, and CANCELLED orders with payment attempts
   // Orders that are paid and converted to tickets should not be shown
-  // FAILED orders are shown so user can retry payment
+  // CANCELLED orders are shown only if they have payment attempts (gateway cancelled)
+  // CANCELLED orders without payments (manual cancellation) are hidden
   const pendingOrders = orders.filter(
     (order) => {
       const status = order.status?.toUpperCase();
-      return status === "PENDING" || status === "FAILED";
+      
+      // نمایش PENDING و FAILED
+      if (status === "PENDING" || status === "FAILED") {
+        return true;
+      }
+      
+      // نمایش CANCELLED فقط اگر حداقل یک payment attempt شده باشد
+      // (یعنی از درگاه لغو شده، نه اینکه کاربر دستی لغو کرده باشد)
+      if (status === "CANCELLED") {
+        const hasPayments = order.payments && order.payments.length > 0;
+        return hasPayments;
+      }
+      
+      return false;
     }
   );
 
