@@ -111,6 +111,13 @@ interface Ticket {
     vicinity?: string;
     status?: string;
     image?: string;
+    description?: string;
+    venue_address?: string;
+    venueAddress?: string;
+    venue_location_link?: string;
+    venueLocationLink?: string;
+    venue_name?: string;
+    venueName?: string;
   };
   user?: {
     id?: number;
@@ -330,6 +337,253 @@ export default function OverviewTab({
     if (onCancelClick) {
       onCancelClick(orderId);
     }
+  };
+
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return { date: "", time: "" };
+    try {
+      const date = new Date(dateString);
+      const formattedDate = new Intl.DateTimeFormat("fa-IR", {
+        year: "numeric",
+        month: "long",
+        day: "numeric",
+        weekday: "long",
+      }).format(date);
+      const formattedTime = new Intl.DateTimeFormat("fa-IR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
+      }).format(date);
+      return { date: formattedDate, time: formattedTime };
+    } catch {
+      return { date: dateString, time: "" };
+    }
+  };
+
+  const handlePrintTicket = (ticket: Ticket, event?: Ticket["event"]) => {
+    const printWindow = window.open("", "_blank");
+    if (!printWindow) {
+      toast.error("لطفاً popup blocker را غیرفعال کنید");
+      return;
+    }
+
+    // Calculate values before creating HTML from real backend data
+    const eventTitle = event?.title || `بلیط #${ticket.id}`;
+    const eventDescription = event?.description || "";
+    const dateTime = formatDateTime(event?.startDate);
+    const location = event?.location || event?.vicinity || "";
+    const venueAddress =
+      event?.venue_address || event?.venueAddress || location || "";
+    const venueLocationLink =
+      event?.venue_location_link || event?.venueLocationLink || "";
+    const venueName = event?.venue_name || event?.venueName || "";
+    const userFullname = ticket.user?.fullname || "";
+    const userPhone = ticket.user?.phone || "";
+    const ticketNumber =
+      ticket.ticketNumber || `#${String(ticket.id).padStart(4, "0")}`;
+
+    const ticketContent = `
+      <!DOCTYPE html>
+      <html dir="rtl" lang="fa">
+        <head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>بلیط - ${eventTitle}</title>
+          <link rel="preconnect" href="https://fonts.googleapis.com">
+          <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+          <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+          <script src="https://cdn.tailwindcss.com"></script>
+          <style>
+            * {
+              font-family: 'Vazirmatn', sans-serif;
+            }
+            @media print {
+              @page {
+                size: A4;
+                margin: 2cm;
+              }
+              * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+                print-color-adjust: exact !important;
+              }
+              body {
+                background: white !important;
+                padding: 0 !important;
+                margin: 0 !important;
+              }
+              .no-print {
+                display: none !important;
+              }
+            }
+          </style>
+        </head>
+        <body class="bg-slate-50 p-4" style="font-family: 'Vazirmatn', sans-serif;">
+          <div class="max-w-2xl mx-auto">
+            <div class="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-slate-200">
+              <!-- Header -->
+              <div class="bg-gradient-to-br from-blue-900 to-indigo-900 text-white p-6 text-center">
+                <div class="flex items-center justify-center gap-3 mb-4">
+                  <img src="/logo3.png" alt="Ping Society Logo" class="w-20 h-20 object-contain" onerror="this.style.display='none';">
+                  <div class="text-3xl font-extrabold text-yellow-100 drop-shadow-lg tracking-wide">PingSociety</div>
+                </div>
+                <div class="text-xl font-bold text-slate-200 mb-2">${eventTitle}</div>
+                <div class="text-sm font-medium text-slate-300">بلیط شرکت در رویداد</div>
+              </div>
+              
+              <!-- Event Info -->
+              <div class="p-6 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
+                <div class="text-xl font-bold text-blue-900 mb-3 text-center leading-relaxed">
+                  ${eventTitle}
+                </div>
+                ${
+                  eventDescription
+                    ? `
+                  <div class="text-sm text-slate-600 text-center italic mb-4">
+                    ${eventDescription}
+                  </div>
+                `
+                    : `
+                  <div class="text-sm text-slate-600 text-center italic mb-4"> 
+                  </div>
+                `
+                }
+                <div class="grid grid-cols-2 gap-4">
+                  ${
+                    dateTime.date
+                      ? `
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 text-center">
+                      <div class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">تاریخ</div>
+                      <div class="text-base font-semibold text-slate-800">${dateTime.date}</div>
+                    </div>
+                  `
+                      : ""
+                  }
+                  ${
+                    dateTime.time
+                      ? `
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 text-center">
+                      <div class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">ساعت</div>
+                      <div class="text-base font-semibold text-slate-800">${dateTime.time}</div>
+                    </div>
+                  `
+                      : ""
+                  }
+                  ${
+                    location
+                      ? `
+                    <div class="bg-white p-4 rounded-lg border border-slate-200 text-center col-span-2">
+                      <div class="text-xs text-slate-500 font-medium mb-1 uppercase tracking-wide">مکان</div>
+                      <div class="text-base font-semibold text-slate-800">${location}</div>
+                    </div>
+                  `
+                      : ""
+                  }
+                </div>
+              </div>
+              
+              <!-- Participant Info -->
+              <div class="p-6 bg-gradient-to-br from-yellow-50 to-amber-50 border-b border-amber-200">
+                <div class="text-base font-semibold text-amber-900 mb-4 text-center">مشخصات شرکت‌کننده</div>
+                <div class="grid grid-cols-2 gap-4">
+                  ${
+                    userFullname
+                      ? `
+                    <div class="text-center">
+                      <div class="text-xs text-amber-700 font-medium mb-1">نام و نام خانوادگی</div>
+                      <div class="text-base font-bold text-amber-900">${userFullname}</div>
+                    </div>
+                  `
+                      : ""
+                  }
+                  ${
+                    userPhone
+                      ? `
+                    <div class="text-center">
+                      <div class="text-xs text-amber-700 font-medium mb-1">شماره موبایل</div>
+                      <div class="text-base font-bold text-amber-900">${userPhone}</div>
+                    </div>
+                  `
+                      : ""
+                  }
+                </div>
+              </div>
+              
+              <!-- Venue Info -->
+              ${
+                venueAddress || location
+                  ? `
+                <div class="p-6 bg-gradient-to-br from-green-50 to-emerald-50 border-b border-emerald-200">
+                  <div class="text-base font-semibold text-emerald-900 mb-4 text-center">آدرس محل برگزاری</div>
+                  <div class="text-sm text-emerald-800 text-center leading-relaxed mb-4 whitespace-pre-line">
+                    ${venueAddress || location}
+                  </div>
+                  ${
+                    venueName
+                      ? `
+                    <div class="text-base font-semibold text-emerald-900 mb-4 text-center">${venueName}</div>
+                  `
+                      : ""
+                  }
+                  ${
+                    venueLocationLink
+                      ? `
+                    <div class="text-center">
+                      <a href="${venueLocationLink}" target="_blank" class="inline-flex items-center gap-2 bg-white border border-emerald-300 px-5 py-2 rounded-lg text-sm font-semibold text-emerald-700 hover:bg-emerald-50 transition-colors">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        لوکیشن رویداد
+                      </a>
+                    </div>
+                  `
+                      : `
+                    <div class="text-center">
+                      <div class="inline-flex items-center gap-2 bg-white border border-emerald-300 px-5 py-2 rounded-lg text-sm font-semibold text-emerald-700">
+                        <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                        لوکیشن رویداد
+                      </div>
+                    </div>
+                  `
+                  }
+                </div>
+              `
+                  : ""
+              }
+              
+              <!-- Footer -->
+              <div class="p-6 bg-slate-50 text-center border-t-2 border-dashed border-slate-300">
+                <div class="text-sm text-slate-600 font-medium mb-2">
+                  شماره بلیط: <span class="font-bold text-slate-800">${ticketNumber}</span>
+                </div>
+                <div class="text-xs text-slate-500 font-medium">
+                  لطفاً تصویر این بلیط را هنگام ورود به رویداد همراه داشته باشید
+                </div>
+              </div>
+            </div>
+            
+            <!-- Print Button -->
+            <div class="no-print mt-8 text-center">
+              <button onclick="window.print()" class="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+                🖨️ چاپ بلیط
+              </button>
+            </div>
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(ticketContent);
+    printWindow.document.close();
+
+    // Wait for content to load, then trigger print
+    setTimeout(() => {
+      printWindow.print();
+    }, 250);
   };
 
   const isValidImageUrl = (url?: string): boolean => {
@@ -570,23 +824,51 @@ export default function OverviewTab({
                           </div>
 
                           <div className="flex items-center justify-end mt-auto">
-                            {ticket.status?.toUpperCase() === "ACTIVE" &&
-                              ticket.qrCode && (
+                            {ticket.status?.toUpperCase() === "ACTIVE" && (
+                              <>
+                                {/* QR Code Button - Commented out */}
+                                {/* {ticket.qrCode && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setSelectedTicket({
+                                        qrCode: ticket.qrCode!,
+                                        ticketNumber: ticket.ticketNumber,
+                                        eventTitle: event?.title,
+                                      });
+                                      setQrModalOpen(true);
+                                    }}
+                                    className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap"
+                                  >
+                                    نمایش QR
+                                  </button>
+                                )} */}
+
+                                {/* Print Ticket Button */}
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setSelectedTicket({
-                                      qrCode: ticket.qrCode!,
-                                      ticketNumber: ticket.ticketNumber,
-                                      eventTitle: event?.title,
-                                    });
-                                    setQrModalOpen(true);
+                                    handlePrintTicket(ticket, event);
                                   }}
-                                  className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap"
+                                  className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
                                 >
-                                  نمایش QR
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                    />
+                                  </svg>
+                                  چاپ بلیط
                                 </button>
-                              )}
+                              </>
+                            )}
                           </div>
                         </div>
                       </div>
