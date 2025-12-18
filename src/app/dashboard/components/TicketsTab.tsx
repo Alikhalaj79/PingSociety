@@ -77,9 +77,7 @@ export default function TicketsTab({ tickets }: TicketsTabProps) {
               </div>
 
               <div className="space-y-2 text-sm text-white/60 mb-4">
-                <p className="font-vazirmatn">
-                  📅 {new Date(ticket.eventDate).toLocaleDateString("fa-IR")}
-                </p>
+                <p className="font-vazirmatn">📅 {ticket.eventDate}</p>
                 <p className="font-vazirmatn">🎫 کد بلیط: {ticket.id}</p>
               </div>
 

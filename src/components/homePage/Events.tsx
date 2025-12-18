@@ -68,8 +68,27 @@ export default function Events() {
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
+    const trimmed = dateString.trim();
+
+    // اگر تاریخ به‌صورت شمسی از بک‌اند آمده (مثلاً "1404/09/07 23:30:00")
+    // همان تاریخ را بدون تبدیل تقویم نمایش می‌دهیم تا سال اشتباه (۷۸۳) نشود
+    const jalaliMatch = trimmed.match(
+      /^(\d{3,4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}:\d{2})(?::\d{2})?)?$/
+    );
+
+    if (jalaliMatch) {
+      const year = parseInt(jalaliMatch[1], 10);
+      if (year >= 1300 && year <= 1600) {
+        const month = jalaliMatch[2].padStart(2, "0");
+        const day = jalaliMatch[3].padStart(2, "0");
+        return `${year}/${month}/${day}`;
+      }
+    }
+
     try {
-      const date = new Date(dateString);
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) return dateString;
+
       return new Intl.DateTimeFormat("fa-IR", {
         year: "numeric",
         month: "long",

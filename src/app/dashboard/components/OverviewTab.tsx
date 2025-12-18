@@ -273,8 +273,27 @@ export default function OverviewTab({
 
   const formatDate = (dateString?: string) => {
     if (!dateString) return "";
+    const trimmed = dateString.trim();
+
+    // اگر تاریخ به‌صورت شمسی از بک‌اند آمده (مثلاً "1404/09/07 23:30:00")
+    // بدون تبدیل تقویم نمایش می‌دهیم تا سال و ساعت جابه‌جا نشود
+    const jalaliMatch = trimmed.match(
+      /^(\d{3,4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}:\d{2})(?::\d{2})?)?$/
+    );
+
+    if (jalaliMatch) {
+      const year = parseInt(jalaliMatch[1], 10);
+      if (year >= 1300 && year <= 1600) {
+        const month = jalaliMatch[2].padStart(2, "0");
+        const day = jalaliMatch[3].padStart(2, "0");
+        return `${year}/${month}/${day}`;
+      }
+    }
+
     try {
-      const date = new Date(dateString);
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) return dateString;
+
       return new Intl.DateTimeFormat("fa-IR", {
         year: "numeric",
         month: "long",
@@ -341,8 +360,31 @@ export default function OverviewTab({
 
   const formatDateTime = (dateString?: string) => {
     if (!dateString) return { date: "", time: "" };
+    const trimmed = dateString.trim();
+
+    // اگر تاریخ/ساعت به‌صورت شمسی از بک‌اند آمده (مثلاً "1404/09/07 23:30:00")
+    // بدون تبدیل تقویم استفاده می‌کنیم تا سال ۷۸۳ و اختلاف ساعت ایجاد نشود
+    const jalaliMatch = trimmed.match(
+      /^(\d{3,4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}:\d{2})(?::\d{2})?)?$/
+    );
+
+    if (jalaliMatch) {
+      const year = parseInt(jalaliMatch[1], 10);
+      if (year >= 1300 && year <= 1600) {
+        const month = jalaliMatch[2].padStart(2, "0");
+        const day = jalaliMatch[3].padStart(2, "0");
+        const datePart = `${year}/${month}/${day}`;
+        const timePart = jalaliMatch[4] || "";
+        return { date: datePart, time: timePart };
+      }
+    }
+
     try {
-      const date = new Date(dateString);
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) {
+        return { date: dateString, time: "" };
+      }
+
       const formattedDate = new Intl.DateTimeFormat("fa-IR", {
         year: "numeric",
         month: "long",
@@ -896,6 +938,7 @@ export default function OverviewTab({
                   const event = order.event;
                   const eventTitle = event?.title || `سفارش #${order.id}`;
                   const eventStartDate = event?.startDate;
+                  const eventDateTime = formatDateTime(eventStartDate);
                   const eventImage = event?.image;
 
                   const hasImageData =
@@ -976,7 +1019,27 @@ export default function OverviewTab({
                                   />
                                 </svg>
                                 <span className="font-vazirmatn">
-                                  {formatDate(eventStartDate)}
+                                  {eventDateTime.date}
+                                </span>
+                              </div>
+                            )}
+                            {eventDateTime.time && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-gray-300"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                  />
+                                </svg>
+                                <span className="font-vazirmatn">
+                                  {eventDateTime.time}
                                 </span>
                               </div>
                             )}
@@ -1025,26 +1088,7 @@ export default function OverviewTab({
                                 </span>
                               </div>
                             )}
-                            {order.createdAt && (
-                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
-                                <svg
-                                  className="w-5 h-5 ml-2 text-gray-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                                  />
-                                </svg>
-                                <span className="font-vazirmatn">
-                                  تاریخ ثبت: {formatDate(order.createdAt)}
-                                </span>
-                              </div>
-                            )}
+                            {/* تاریخ ثبت سفارش را فعلاً نمایش نمی‌دهیم */}
                           </div>
 
                           <div className="flex items-center justify-end mt-auto">
@@ -1060,9 +1104,8 @@ export default function OverviewTab({
                                   order.id
                                 );
 
-                                
                                 const canCancel = isPending;
-                                
+
                                 const canRetryPayment =
                                   isPending || isCancelledWithPayments;
 
