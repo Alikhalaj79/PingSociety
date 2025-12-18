@@ -53,8 +53,11 @@ function PaymentCallbackContent() {
 
         if (response.ok && data.success) {
           setStatus("success");
-          setMessage(data.message || "پرداخت با موفقیت انجام شد");
-          toast.success(data.message || "پرداخت با موفقیت انجام شد");
+          // نمایش پیام کاملاً فارسی و ثابت، بدون وابستگی به متن بک‌اند
+          setMessage(
+            "پرداخت شما با موفقیت انجام شد. تا چند لحظه دیگر به داشبورد منتقل می‌شوید."
+          );
+          toast.success("پرداخت با موفقیت انجام شد");
 
           // Refresh orders and tickets after successful payment
           refreshOrders();
@@ -70,10 +73,11 @@ function PaymentCallbackContent() {
           }, 1500);
         } else {
           setStatus("error");
+          // پیام فارسی برای حالت ناموفق / لغو تراکنش
           setMessage(
-            data.error || data.message || "پرداخت ناموفق بود یا لغو شد"
+            "پرداخت انجام نشد یا توسط شما لغو شد. در صورت کسر وجه، حداکثر تا ۷۲ ساعت آینده به حساب شما بازگردانده می‌شود."
           );
-          toast.error(data.error || data.message || "پرداخت ناموفق بود");
+          toast.error("پرداخت ناموفق بود");
 
           // Refresh orders and tickets after failed payment to ensure PENDING order is still available
           // The order should remain in PENDING status after failed payment
@@ -114,23 +118,25 @@ function PaymentCallbackContent() {
   }, [searchParams, router, refreshOrders, refreshTickets]);
 
   return (
-    <div className="min-h-screen bg-black text-white">
+    <div className="min-h-screen bg-[#080358] text-white">
       <Header />
       <div className="py-20">
         <Container>
           <div className="max-w-md mx-auto text-center">
             {status === "loading" && (
-              <div className="space-y-6">
-                <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#F84920] mx-auto"></div>
+              <div className="space-y-6 bg-white/5 border border-white/10 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full border-4 border-[#F84920]/30">
+                  <div className="animate-spin rounded-full h-10 w-10 border-t-4 border-b-4 border-[#F84920]"></div>
+                </div>
                 <h2 className="text-2xl font-bold">در حال بررسی پرداخت...</h2>
-                <p className="text-gray-400">لطفا صبر کنید</p>
+                <p className="text-gray-300">لطفاً چند لحظه صبر کنید</p>
               </div>
             )}
 
             {status === "success" && (
-              <div className="space-y-6 bg-green-500/10 border border-green-500/30 rounded-lg p-8">
+              <div className="space-y-6 bg-emerald-500/10 border border-emerald-400/40 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
                 <svg
-                  className="w-16 h-16 mx-auto text-green-400"
+                  className="w-16 h-16 mx-auto text-emerald-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -142,18 +148,18 @@ function PaymentCallbackContent() {
                     d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
                   />
                 </svg>
-                <h2 className="text-2xl font-bold text-green-300">
+                <h2 className="text-2xl font-bold text-emerald-300">
                   پرداخت موفق
                 </h2>
-                <p className="text-gray-300">{message}</p>
-                <p className="text-sm text-gray-400">
-                  در حال انتقال به داشبورد...
+                <p className="text-gray-100 leading-relaxed">{message}</p>
+                <p className="text-sm text-gray-300">
+                  در حال انتقال خودکار به داشبورد پینگ‌سوسایتی...
                 </p>
               </div>
             )}
 
             {status === "error" && (
-              <div className="space-y-6 bg-red-500/10 border border-red-500/30 rounded-lg p-8">
+              <div className="space-y-6 bg-red-500/10 border border-red-400/40 rounded-2xl p-8 shadow-xl backdrop-blur-sm">
                 <svg
                   className="w-16 h-16 mx-auto text-red-400"
                   fill="none"
@@ -170,9 +176,9 @@ function PaymentCallbackContent() {
                 <h2 className="text-2xl font-bold text-red-300">
                   پرداخت ناموفق
                 </h2>
-                <p className="text-gray-300">{message}</p>
-                <p className="text-sm text-gray-400">
-                  در حال انتقال به داشبورد...
+                <p className="text-gray-100 leading-relaxed">{message}</p>
+                <p className="text-sm text-gray-300">
+                  در حال بازگشت به داشبورد؛ در صورت نیاز می‌توانید مجدداً برای پرداخت اقدام کنید.
                 </p>
               </div>
             )}
@@ -189,7 +195,7 @@ export default function PaymentCallbackPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="min-h-screen bg-[#080358] text-white flex items-center justify-center">
           <div className="text-center">
             <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-[#F84920] mx-auto mb-4"></div>
             <h2 className="text-2xl font-bold">در حال بارگذاری...</h2>
