@@ -9,6 +9,8 @@ export interface Order {
   quantity?: number;
   ticketPrice?: number;
   createdAt?: string;
+  discountAmount?: number;
+  cancelledReason?: string;
   event?: {
     id?: number | string;
     title?: string;
@@ -19,6 +21,7 @@ export interface Order {
   ticket?: {
     price?: number;
   };
+  payments?: Array<{ id: number; status: string; amount: number }>;
 }
 
 export interface Ticket {
@@ -142,17 +145,30 @@ export const checkEventStatus = createAsyncThunk(
         (t) => t.event?.id?.toString() === eventId.toString()
       );
 
-      // Find pending or failed order for this event
-      // FAILED orders are included so user can retry payment
-      const pendingOrder = orders.find(
-        (o) => {
-          const status = o.status?.toUpperCase();
-          return (
-            o.event?.id?.toString() === eventId.toString() &&
-            (status === "PENDING" || status === "FAILED")
-          );
-        }
+      // Find an order for this event that user can continue / retry payment for.
+     
+      const matchingOrders = orders.filter(
+        (o) => o.event?.id?.toString() === eventId.toString()
       );
+
+      let pendingOrder: Order | null = null;
+
+      // First, try to find PENDING or FAILED
+      pendingOrder =
+        matchingOrders.find((o) => {
+          const status = o.status?.toUpperCase();
+          return status === "PENDING" || status === "FAILED";
+        }) || null;
+
+      // If none, fallback to CANCELLED that has payment attempts (gateway cancelled)
+      if (!pendingOrder) {
+        pendingOrder =
+          matchingOrders.find((o) => {
+            const status = o.status?.toUpperCase();
+            const hasPayments = o.payments && o.payments.length > 0;
+            return status === "CANCELLED" && hasPayments;
+          }) || null;
+      }
 
       return {
         eventId: eventId.toString(),
@@ -247,15 +263,27 @@ export const getEventTicket = (state: { orders: OrdersState }, eventId: string |
 };
 
 export const getEventPendingOrder = (state: { orders: OrdersState }, eventId: string | number) => {
-  return state.orders.orders.find(
-    (o) => {
-      const status = o.status?.toUpperCase();
-      return (
-        o.event?.id?.toString() === eventId.toString() &&
-        (status === "PENDING" || status === "FAILED")
-      );
-    }
+  const matchingOrders = state.orders.orders.filter(
+    (o) => o.event?.id?.toString() === eventId.toString()
   );
+
+
+  const pendingOrFailed =
+    matchingOrders.find((o) => {
+      const status = o.status?.toUpperCase();
+      return status === "PENDING" || status === "FAILED";
+    }) || null;
+
+  if (pendingOrFailed) return pendingOrFailed;
+
+  const cancelledWithPayments =
+    matchingOrders.find((o) => {
+      const status = o.status?.toUpperCase();
+      const hasPayments = o.payments && o.payments.length > 0;
+      return status === "CANCELLED" && hasPayments;
+    }) || null;
+
+  return cancelledWithPayments;
 };
 
 export default ordersSlice.reducer;

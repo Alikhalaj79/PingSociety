@@ -23,6 +23,7 @@ interface Order {
   ticket?: {
     price?: number;
   };
+  payments?: Array<{ id: number; status: string; amount: number }>;
 }
 
 interface OrderCardModalProps {
@@ -345,8 +346,18 @@ export default function OrderCardModal({
                       <div className="flex items-center gap-3">
                         {(() => {
                           const status = order.status?.toUpperCase();
+                          const hasPayments =
+                            order.payments && order.payments.length > 0;
                           const isPending = status === "PENDING";
-                          const canCancel = isPending || !status;
+                          const isFailed = status === "FAILED";
+                          const isCancelledWithPayments =
+                            status === "CANCELLED" && hasPayments;
+
+                          const canCancel =
+                            isPending || (!status && !hasPayments);
+
+                          const canRetryPayment =
+                            isPending || isFailed || isCancelledWithPayments;
 
                           return (
                             <>
@@ -359,7 +370,7 @@ export default function OrderCardModal({
                                   لغو سفارش
                                 </button>
                               )}
-                              {isPending && (
+                              {canRetryPayment && (
                                 <button
                                   onClick={handleFinalizeOrder}
                                   disabled={isProcessing || isCanceling}
@@ -367,7 +378,9 @@ export default function OrderCardModal({
                                 >
                                   {isProcessing
                                     ? "در حال پردازش..."
-                                    : "نهایی کردن سفارش"}
+                                    : isPending
+                                    ? "نهایی کردن سفارش"
+                                    : "تلاش مجدد پرداخت"}
                                 </button>
                               )}
                             </>

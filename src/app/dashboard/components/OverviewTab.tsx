@@ -960,26 +960,26 @@ export default function OverviewTab({
                           </div>
 
                           <div className="space-y-2 mb-4">
-                    {eventStartDate && (
-                      <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
-                        <svg
-                          className="w-5 h-5 ml-2 text-blue-400"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <span className="font-vazirmatn">
-                          {formatDate(eventStartDate)}
-                        </span>
-                      </div>
-                    )}
+                            {eventStartDate && (
+                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                                <svg
+                                  className="w-5 h-5 ml-2 text-blue-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span className="font-vazirmatn">
+                                  {formatDate(eventStartDate)}
+                                </span>
+                              </div>
+                            )}
                             {event?.vicinity && (
                               <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
                                 <svg
@@ -1052,39 +1052,34 @@ export default function OverviewTab({
                               {(() => {
                                 const status = order.status?.toUpperCase();
                                 const isPending = status === "PENDING";
+                                const hasPayments =
+                                  order.payments && order.payments.length > 0;
                                 const isCancelledWithPayments =
-                                  status === "CANCELLED" &&
-                                  order.payments &&
-                                  order.payments.length > 0;
+                                  status === "CANCELLED" && hasPayments;
                                 const isCanceling = cancelingOrders.has(
                                   order.id
                                 );
 
+                                
+                                const canCancel = isPending;
+                                
+                                const canRetryPayment =
+                                  isPending || isCancelledWithPayments;
+
                                 return (
                                   <>
-                                    {isPending && (
-                                      <>
-                                        <button
-                                          onClick={(e) =>
-                                            handleCancelClick(e, order.id)
-                                          }
-                                          disabled={isCanceling}
-                                          className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                          لغو سفارش
-                                        </button>
-                                        <button
-                                          onClick={(e) =>
-                                            handleFinalizeOrder(e, order.id)
-                                          }
-                                          disabled={isCanceling}
-                                          className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                          نهایی کردن سفارش
-                                        </button>
-                                      </>
+                                    {canCancel && (
+                                      <button
+                                        onClick={(e) =>
+                                          handleCancelClick(e, order.id)
+                                        }
+                                        disabled={isCanceling}
+                                        className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+                                      >
+                                        لغو سفارش
+                                      </button>
                                     )}
-                                    {isCancelledWithPayments && (
+                                    {canRetryPayment && (
                                       <button
                                         onClick={(e) =>
                                           handleFinalizeOrder(e, order.id)
@@ -1092,7 +1087,9 @@ export default function OverviewTab({
                                         disabled={isCanceling}
                                         className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                                       >
-                                        تلاش مجدد پرداخت
+                                        {isPending
+                                          ? "نهایی کردن سفارش"
+                                          : "تلاش مجدد پرداخت"}
                                       </button>
                                     )}
                                   </>
