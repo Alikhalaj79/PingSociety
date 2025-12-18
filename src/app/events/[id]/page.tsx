@@ -40,6 +40,7 @@ interface Event {
   description?: string;
   startDate?: string;
   location?: string;
+  vicinity?: string;
   image?: string;
   tickets?: Ticket[];
   sponsors?: Sponsor[];
@@ -570,17 +571,50 @@ export default function EventDetailPage() {
     }
   }, [eventId, fetchEventDetail]);
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
+  const formatDateTime = (dateString?: string) => {
+    if (!dateString) return { date: "", time: "" };
+    const trimmed = dateString.trim();
+
+    // اگر تاریخ/ساعت به‌صورت شمسی از بک‌اند آمده (مثلاً "1404/09/07 23:30:00")
+    // بدون تبدیل تقویم استفاده می‌کنیم تا سال و ساعت جابه‌جا نشود
+    const jalaliMatch = trimmed.match(
+      /^(\d{3,4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}:\d{2})(?::\d{2})?)?$/
+    );
+
+    if (jalaliMatch) {
+      const year = parseInt(jalaliMatch[1], 10);
+      if (year >= 1300 && year <= 1600) {
+        const month = jalaliMatch[2].padStart(2, "0");
+        const day = jalaliMatch[3].padStart(2, "0");
+        const datePart = `${year}/${month}/${day}`;
+        const timePart = jalaliMatch[4] || "";
+        return { date: datePart, time: timePart };
+      }
+    }
+
     try {
-      const date = new Date(dateString);
+      const date = new Date(trimmed);
+      if (isNaN(date.getTime())) {
+        return { date: dateString, time: "" };
+      }
+
       const year = date.getFullYear();
       const month = String(date.getMonth() + 1).padStart(2, "0");
       const day = String(date.getDate()).padStart(2, "0");
-      return `${year}/${month}/${day}`;
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+
+      return {
+        date: `${year}/${month}/${day}`,
+        time: `${hours}:${minutes}`,
+      };
     } catch {
-      return dateString;
+      return { date: dateString, time: "" };
     }
+  };
+
+  const formatDate = (dateString?: string) => {
+    return formatDateTime(dateString).date;
   };
 
   const isValidImageUrl = (url?: string): boolean => {
@@ -869,14 +903,39 @@ export default function EventDetailPage() {
                         <div className="text-right">
                           <p className="text-gray-400 text-sm">تاریخ برگزاری</p>
                           <p className="text-white font-semibold">
-                            {formatDate(event.startDate)}
+                            {formatDateTime(event.startDate).date}
                           </p>
                         </div>
                       </div>
                     )}
 
-                    {/* Location */}
-                    {event.location && (
+                    {/* Time */}
+                    {event.startDate && formatDateTime(event.startDate).time && (
+                      <div className="flex items-start gap-3 flex-row-reverse">
+                        <svg
+                          className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                          />
+                        </svg>
+                        <div className="text-right">
+                          <p className="text-gray-400 text-sm">ساعت برگزاری</p>
+                          <p className="text-white font-semibold">
+                            {formatDateTime(event.startDate).time}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location & Vicinity */}
+                    {(event.vicinity) && (
                       <div className="flex items-start gap-3 flex-row-reverse">
                         <svg
                           className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1"
@@ -898,9 +957,9 @@ export default function EventDetailPage() {
                           />
                         </svg>
                         <div className="text-right">
-                          <p className="text-gray-400 text-sm">مکان</p>
+                          <p className="text-gray-400 text-sm">محدوده</p>
                           <p className="text-white font-semibold">
-                            {event.location}
+                            {event.vicinity }
                           </p>
                         </div>
                       </div>
