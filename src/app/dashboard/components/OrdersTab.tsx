@@ -88,12 +88,22 @@ export default function OrdersTab({ orders }: OrdersTabProps) {
               </div>
 
               <div className="space-y-2 text-sm text-white/60 mb-2">
-                {order.orderNumber && <p>شماره سفارش: {order.orderNumber}</p>}
-                {order.quantity != null && <p>تعداد: {order.quantity}</p>}
-                {order.totalAmount != null && (
-                  <p>مبلغ: {order.totalAmount.toLocaleString("fa-IR")} ریال</p>
+                {order.orderNumber && (
+                  <p className="font-vazirmatn">
+                    شماره سفارش: {order.orderNumber}
+                  </p>
                 )}
-                {order.createdAt && <p>تاریخ ثبت: {order.createdAt}</p>}
+                {order.quantity != null && (
+                  <p className="font-vazirmatn">تعداد: {order.quantity}</p>
+                )}
+                {order.totalAmount != null && (
+                  <p className="font-vazirmatn">
+                    مبلغ: {order.totalAmount.toLocaleString("fa-IR")} ریال
+                  </p>
+                )}
+                {order.createdAt && (
+                  <p className="font-vazirmatn">تاریخ ثبت: {order.createdAt}</p>
+                )}
               </div>
             </div>
           ))}

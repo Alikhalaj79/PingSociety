@@ -914,7 +914,7 @@ export default function EventDetailPage() {
                         <div className="flex items-start gap-3 flex-row-reverse">
                           <div className="text-right">
                             <p className="text-gray-400 text-sm">هزینه</p>
-                            <p className="text-white font-semibold">
+                            <p className="text-white font-semibold font-vazirmatn">
                               {event.tickets[0].price === 0
                                 ? "رایگان"
                                 : `${event.tickets[0].price.toLocaleString(

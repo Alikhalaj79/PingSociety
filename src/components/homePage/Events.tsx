@@ -260,7 +260,7 @@ export default function Events() {
                               d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
-                          <span className="text-right">
+                          <span className="text-right font-vazirmatn">
                             {formatDate(event.date)}
                             {event.time && ` - ${event.time}`}
                           </span>
@@ -304,10 +304,10 @@ export default function Events() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                              d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0-2.08.402-2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                             />
                           </svg>
-                          <span className="text-right">
+                          <span className="text-right font-vazirmatn">
                             {event.price === 0
                               ? "رایگان"
                               : `${event.price.toLocaleString()} تومان`}
@@ -319,7 +319,7 @@ export default function Events() {
                     {event.capacity && event.registered !== undefined && (
                       <div className="mb-4">
                         <div className="flex justify-between text-xs text-gray-400 mb-1 text-right">
-                          <span>
+                          <span className="font-vazirmatn">
                             {event.registered} / {event.capacity}
                           </span>
                           <span>ظرفیت</span>

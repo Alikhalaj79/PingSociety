@@ -77,10 +77,10 @@ export default function TicketsTab({ tickets }: TicketsTabProps) {
               </div>
 
               <div className="space-y-2 text-sm text-white/60 mb-4">
-                <p>
+                <p className="font-vazirmatn">
                   📅 {new Date(ticket.eventDate).toLocaleDateString("fa-IR")}
                 </p>
-                <p>🎫 کد بلیط: {ticket.id}</p>
+                <p className="font-vazirmatn">🎫 کد بلیط: {ticket.id}</p>
               </div>
 
               {ticket.status === "active" && (

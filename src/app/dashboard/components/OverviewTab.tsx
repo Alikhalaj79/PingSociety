@@ -960,24 +960,26 @@ export default function OverviewTab({
                           </div>
 
                           <div className="space-y-2 mb-4">
-                            {eventStartDate && (
-                              <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
-                                <svg
-                                  className="w-5 h-5 ml-2 text-blue-400"
-                                  fill="none"
-                                  stroke="currentColor"
-                                  viewBox="0 0 24 24"
-                                >
-                                  <path
-                                    strokeLinecap="round"
-                                    strokeLinejoin="round"
-                                    strokeWidth={2}
-                                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                                  />
-                                </svg>
-                                <span>{formatDate(eventStartDate)}</span>
-                              </div>
-                            )}
+                    {eventStartDate && (
+                      <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
+                        <svg
+                          className="w-5 h-5 ml-2 text-blue-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                          />
+                        </svg>
+                        <span className="font-vazirmatn">
+                          {formatDate(eventStartDate)}
+                        </span>
+                      </div>
+                    )}
                             {event?.vicinity && (
                               <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
                                 <svg
@@ -1017,7 +1019,7 @@ export default function OverviewTab({
                                     d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                                   />
                                 </svg>
-                                <span className="font-semibold text-white">
+                                <span className="font-semibold text-white font-vazirmatn">
                                   {order.totalAmount.toLocaleString("fa-IR")}{" "}
                                   ریال
                                 </span>
@@ -1038,7 +1040,7 @@ export default function OverviewTab({
                                     d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
                                   />
                                 </svg>
-                                <span>
+                                <span className="font-vazirmatn">
                                   تاریخ ثبت: {formatDate(order.createdAt)}
                                 </span>
                               </div>
