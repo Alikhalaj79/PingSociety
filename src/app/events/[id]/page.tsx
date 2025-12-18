@@ -457,10 +457,10 @@ export default function EventDetailPage() {
     prevUserIdRef.current = currentUserId;
   }, [user?.id, refreshOrders, refreshTickets]);
 
-  // Check event status when page loads and user is authenticated
-  // Also re-check when orders/tickets are loaded (after login)
+  // Check event status when page loads (independent of Redux auth state)
+  // This ensures that if user قبلا ثبت‌نام کرده، دکمه از همون لحظه ورود غیرفعال و متن مناسب نمایش داده شود
   useEffect(() => {
-    if (eventId && isAuthenticated && user?.id && !hasCheckedEventStatus) {
+    if (eventId && !hasCheckedEventStatus) {
       const checkStatus = async () => {
         try {
           const result = await checkEvent(eventId);
@@ -491,14 +491,14 @@ export default function EventDetailPage() {
         }
       };
 
-      // Wait a bit for orders/tickets to be fetched after login
+      // Small delay to avoid racing with initial auth/order fetching
       const timeoutId = setTimeout(() => {
         checkStatus();
       }, 300);
 
       return () => clearTimeout(timeoutId);
     }
-  }, [eventId, isAuthenticated, user?.id, hasCheckedEventStatus, checkEvent]);
+  }, [eventId, hasCheckedEventStatus, checkEvent]);
 
   // Re-check event status when orders/tickets change (e.g., after new user login)
   // This only runs if we already checked once and now have new data

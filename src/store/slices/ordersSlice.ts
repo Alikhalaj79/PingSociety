@@ -146,7 +146,7 @@ export const checkEventStatus = createAsyncThunk(
       );
 
       // Find an order for this event that user can continue / retry payment for.
-     
+
       const matchingOrders = orders.filter(
         (o) => o.event?.id?.toString() === eventId.toString()
       );
@@ -256,17 +256,22 @@ const ordersSlice = createSlice({
 export const { clearOrders, setOrders, setTickets } = ordersSlice.actions;
 
 // Selectors
-export const getEventTicket = (state: { orders: OrdersState }, eventId: string | number) => {
+export const getEventTicket = (
+  state: { orders: OrdersState },
+  eventId: string | number
+) => {
   return state.orders.tickets.find(
     (t) => t.event?.id?.toString() === eventId.toString()
   );
 };
 
-export const getEventPendingOrder = (state: { orders: OrdersState }, eventId: string | number) => {
+export const getEventPendingOrder = (
+  state: { orders: OrdersState },
+  eventId: string | number
+) => {
   const matchingOrders = state.orders.orders.filter(
     (o) => o.event?.id?.toString() === eventId.toString()
   );
-
 
   const pendingOrFailed =
     matchingOrders.find((o) => {
@@ -287,7 +292,3 @@ export const getEventPendingOrder = (state: { orders: OrdersState }, eventId: st
 };
 
 export default ordersSlice.reducer;
-
-
-
-
