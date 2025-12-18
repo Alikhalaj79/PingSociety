@@ -39,6 +39,7 @@ interface Event {
   title: string;
   description?: string;
   startDate?: string;
+  status?: string;
   location?: string;
   vicinity?: string;
   image?: string;
@@ -146,6 +147,8 @@ export default function EventDetailPage() {
 
   // Use local state for hasPurchased to avoid stale data during user transitions
   const hasPurchased = localHasPurchased;
+
+  const isEventCompleted = (event?.status || "").toLowerCase() === "completed";
 
   const createOrder = useCallback(async () => {
     if (!eventId) return false;
@@ -632,7 +635,7 @@ export default function EventDetailPage() {
     return (
       <div className="min-h-screen bg-[#080358] text-white">
         <Header />
-        
+
         {/* Hero Section Skeleton */}
         <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
           <div className="w-full h-full bg-[#080358]/40 animate-pulse"></div>
@@ -649,7 +652,7 @@ export default function EventDetailPage() {
                 <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
                   {/* Title */}
                   <div className="h-10 bg-[#080358]/40 rounded w-3/4"></div>
-                  
+
                   {/* Description Section */}
                   <div className="space-y-4">
                     <div className="h-6 bg-[#080358]/40 rounded w-1/3"></div>
@@ -688,7 +691,7 @@ export default function EventDetailPage() {
                   {/* Event Info Card */}
                   <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
                     <div className="h-6 bg-[#080358]/40 rounded w-1/2 mb-6"></div>
-                    
+
                     <div className="space-y-4">
                       {/* Date */}
                       <div className="flex items-start gap-3 flex-row-reverse">
@@ -910,32 +913,35 @@ export default function EventDetailPage() {
                     )}
 
                     {/* Time */}
-                    {event.startDate && formatDateTime(event.startDate).time && (
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <svg
-                          className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                          />
-                        </svg>
-                        <div className="text-right">
-                          <p className="text-gray-400 text-sm">ساعت برگزاری</p>
-                          <p className="text-white font-semibold">
-                            {formatDateTime(event.startDate).time}
-                          </p>
+                    {event.startDate &&
+                      formatDateTime(event.startDate).time && (
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <svg
+                            className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                            />
+                          </svg>
+                          <div className="text-right">
+                            <p className="text-gray-400 text-sm">
+                              ساعت برگزاری
+                            </p>
+                            <p className="text-white font-semibold">
+                              {formatDateTime(event.startDate).time}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
                     {/* Location & Vicinity */}
-                    {(event.vicinity) && (
+                    {event.vicinity && (
                       <div className="flex items-start gap-3 flex-row-reverse">
                         <svg
                           className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1"
@@ -959,7 +965,7 @@ export default function EventDetailPage() {
                         <div className="text-right">
                           <p className="text-gray-400 text-sm">محدوده</p>
                           <p className="text-white font-semibold">
-                            {event.vicinity }
+                            {event.vicinity}
                           </p>
                         </div>
                       </div>
@@ -1000,9 +1006,16 @@ export default function EventDetailPage() {
                 </div>
 
                 {/* Register Button */}
-                {event.tickets &&
-                event.tickets.length > 0 &&
-                event.tickets[0]?.isAvailable === false ? (
+                {isEventCompleted ? (
+                  <button
+                    disabled
+                    className="w-full bg-gray-600 text-gray-300 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
+                  >
+                    این رویداد به اتمام رسیده است
+                  </button>
+                ) : event.tickets &&
+                  event.tickets.length > 0 &&
+                  event.tickets[0]?.isAvailable === false ? (
                   <button
                     disabled
                     className="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-xl cursor-not-allowed"

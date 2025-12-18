@@ -165,22 +165,23 @@ export function useAuth() {
       console.error("Logout error:", error);
     } finally {
       // Clear all localStorage and sessionStorage
-      if (typeof window !== 'undefined') {
+      if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
-        
+
         // Clear all cookies that can be accessed from JavaScript
         // Note: httpOnly cookies are cleared by the server via /api/auth/logout
         document.cookie.split(";").forEach((cookie) => {
           const eqPos = cookie.indexOf("=");
-          const name = eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
+          const name =
+            eqPos > -1 ? cookie.substr(0, eqPos).trim() : cookie.trim();
           // Clear cookie by setting it to expire in the past
           document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/`;
           document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=${window.location.hostname}`;
           document.cookie = `${name}=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/;domain=.${window.location.hostname}`;
         });
       }
-      
+
       setAuthState({
         isAuthenticated: false,
         user: null,

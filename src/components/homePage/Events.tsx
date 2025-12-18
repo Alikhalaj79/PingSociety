@@ -248,6 +248,11 @@ export default function Events() {
                         </svg>
                       </div>
                     )}
+                    {event.status === "completed" && (
+                      <div className="absolute top-3 right-3 bg-red-600/90 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                        رویداد گذشته
+                      </div>
+                    )}
                     <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
                   </div>
 
