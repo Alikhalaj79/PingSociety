@@ -610,7 +610,7 @@ export default function OverviewTab({
             
             <!-- Print Button -->
             <div class="no-print mt-8 text-center">
-              <button onclick="window.print()" class="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1">
+              <button onclick="window.print()" class="bg-gradient-to-r from-blue-500 to-blue-700 text-white px-8 py-3 rounded-xl font-semibold text-lg shadow-lg hover:shadow-xl transition-all hover:-translate-y-1 cursor-pointer">
                 🖨️ چاپ بلیط
               </button>
             </div>

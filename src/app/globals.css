@@ -82,6 +82,18 @@ body {
   font-optical-sizing: auto;
 }
 
+/* Ensure all buttons show pointer cursor when interactive */
+button,
+[role="button"] {
+  cursor: pointer;
+}
+
+button:disabled,
+button[disabled],
+.cursor-not-allowed {
+  cursor: not-allowed;
+}
+
 /* Custom font classes */
 .font-inter {
   font-family: "Inter", sans-serif;
