@@ -227,38 +227,6 @@ export function useAuth() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pathname]);
 
-  // Re-check when the tab gains focus or a global auth event occurs
-  useEffect(() => {
-    const onFocus = () => {
-      if (pathname !== "/otp") {
-        checkAuth();
-      }
-    };
-    const onVisibility = () => {
-      if (document.visibilityState === "visible" && pathname !== "/otp") {
-        checkAuth();
-      }
-    };
-    const onAuthChanged = () => {
-      if (pathname !== "/otp") {
-        checkAuth();
-      }
-    };
-
-    window.addEventListener("focus", onFocus);
-    document.addEventListener("visibilitychange", onVisibility);
-    window.addEventListener("auth:changed", onAuthChanged as EventListener);
-
-    return () => {
-      window.removeEventListener("focus", onFocus);
-      document.removeEventListener("visibilitychange", onVisibility);
-      window.removeEventListener(
-        "auth:changed",
-        onAuthChanged as EventListener
-      );
-    };
-  }, [checkAuth, pathname]);
-
   return {
     ...authState,
     checkAuth,

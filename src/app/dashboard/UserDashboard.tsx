@@ -162,28 +162,10 @@ export default function UserDashboard({ initialUser }: UserDashboardProps) {
       fetchTicketsAndOrders();
     };
 
-    // Refresh data when window/tab gains focus
-    const handleFocus = () => {
-      console.log("🔄 Window focused, refreshing dashboard data...");
-      fetchTicketsAndOrders();
-    };
-
-    // Refresh data when tab becomes visible
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "visible") {
-        console.log("🔄 Tab visible, refreshing dashboard data...");
-        fetchTicketsAndOrders();
-      }
-    };
-
     window.addEventListener("refresh-dashboard", handleRefresh);
-    window.addEventListener("focus", handleFocus);
-    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return () => {
       window.removeEventListener("refresh-dashboard", handleRefresh);
-      window.removeEventListener("focus", handleFocus);
-      document.removeEventListener("visibilitychange", handleVisibilityChange);
     };
   }, [initialUser, fetchUserData, fetchTicketsAndOrders]);
 
