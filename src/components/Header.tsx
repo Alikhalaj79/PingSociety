@@ -15,7 +15,7 @@ export default function Header() {
   // Instagram icon SVG - matches the design
   const InstagramIcon = () => (
     <svg
-      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+      className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -32,7 +32,7 @@ export default function Header() {
   // Ticket icon SVG - with perforations like in the image
   const TicketIcon = () => (
     <svg
-      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+      className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -58,7 +58,7 @@ export default function Header() {
   // User icon SVG
   const UserIcon = () => (
     <svg
-      className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+      className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
       viewBox="0 0 24 24"
       fill="none"
       stroke="currentColor"
@@ -76,7 +76,7 @@ export default function Header() {
       <Head>
         <link
           rel="stylesheet"
-          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=input"
+          href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&icon_names=input&display=optional"
         />
         <style>{`
           .material-symbols-outlined {
@@ -84,7 +84,25 @@ export default function Header() {
               'FILL' 0,
               'wght' 400,
               'GRAD' 0,
-              'opsz' 24;
+              'opsz' 16;
+          }
+          @media (min-width: 640px) {
+            .material-symbols-outlined {
+              font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 20;
+            }
+          }
+          @media (min-width: 768px) {
+            .material-symbols-outlined {
+              font-variation-settings:
+                'FILL' 0,
+                'wght' 400,
+                'GRAD' 0,
+                'opsz' 20;
+            }
           }
         `}</style>
       </Head>
@@ -133,10 +151,10 @@ export default function Header() {
 
                 {/* Log in Button - White background, orange-red icon and text - Fixed to top */}
                 {isLoading || navigationLoading ? (
-                  <div className="flex flex-col items-center justify-center bg-white p-1 sm:p-1.5 md:p-2 min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px]">
+                  <div className="flex flex-col items-center justify-center bg-white p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px]">
                     <div className="text-[#F84920] flex items-center justify-center animate-spin">
                       <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6"
+                        className="w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5"
                         viewBox="0 0 24 24"
                         fill="none"
                         stroke="currentColor"
@@ -160,7 +178,7 @@ export default function Header() {
                       setNavigationLoading(true);
                       router.push("/dashboard");
                     }}
-                    className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[48px] md:min-h-[57px] cursor-pointer"
+                    className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer"
                   >
                     <div className="text-[#F84920] flex items-center justify-center">
                       <UserIcon />
@@ -174,8 +192,8 @@ export default function Header() {
                     }}
                     className="flex flex-col items-center justify-center bg-white hover:bg-gray-50 p-1 sm:p-1.5 md:p-2 transition-colors min-w-[40px] sm:min-w-[50px] md:min-w-[65px] min-h-[40px] sm:min-h-[44px] md:min-h-[56px] cursor-pointer"
                   >
-                    <div className="text-[#F84920] flex items-center justify-center">
-                      <span className="material-symbols-outlined text-base sm:text-lg md:text-xl">
+                    <div className="text-[#F84920] flex items-center justify-center w-4 h-4 sm:w-[18px] sm:h-[18px] md:w-5 md:h-5">
+                      <span className="material-symbols-outlined text-[16px] sm:text-[18px] md:text-[20px] leading-none inline-flex items-center justify-center">
                         input
                       </span>
                     </div>
