@@ -276,7 +276,7 @@ function OTPContent() {
                   onChange={(e) => handleOtpChange(index, e.target.value)}
                   onKeyDown={(e) => handleKeyDown(index, e)}
                   onPaste={index === 0 ? handlePaste : undefined}
-                  className="w-[35px] h-[50px] text-center text-xl font-bold bg-white rounded-[15px] focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 mx-0.5"
+                  className="w-[35px] h-[50px] text-center text-xl font-bold text-black bg-white rounded-[15px] focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 mx-0.5"
                   style={{
                     boxShadow: " 5px 5px 5px 0px rgba(0, 0, 0, 0.5) inset",
                   }}
