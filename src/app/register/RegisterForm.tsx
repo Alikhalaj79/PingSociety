@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
@@ -11,16 +11,51 @@ function RegisterFormContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isFocused, setIsFocused] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = searchParams.get("returnTo");
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value.replace(/\D/g, ""); // Only allow digits
-    if (value.length <= 11) {
-      setPhoneNumber(value);
+    // Remove all non-digit characters to get only digits
+    const digitsOnly = e.target.value.replace(/\D/g, "");
+
+    // Limit to 11 digits total - no automatic prefix
+    if (digitsOnly.length <= 11) {
+      setPhoneNumber(digitsOnly);
       setError("");
+
+      // Set cursor position after value updates (accounting for spaces in formatted display)
+      setTimeout(() => {
+        if (inputRef.current) {
+          // Calculate cursor position: each digit + space, last digit without trailing space
+          // Example: "0 9 1" -> position after last digit (position 5)
+          const cursorPos =
+            digitsOnly.length > 0 ? digitsOnly.length * 2 - 1 : 0;
+          inputRef.current.setSelectionRange(cursorPos, cursorPos);
+        }
+      }, 0);
     }
+  };
+
+  // Format display value: digits with spaces + placeholders to fill 11 digits
+  const getDisplayValue = () => {
+    if (!phoneNumber || phoneNumber.length === 0) {
+      return "";
+    }
+
+    // Format entered digits with spaces: "0 9 1 2 3"
+    const formattedDigits = phoneNumber.split("").join(" ");
+
+    // Calculate remaining digits to reach 11
+    const remainingDigits = 11 - phoneNumber.length;
+
+    // Format placeholders with spaces: "- - - -"
+    const formattedPlaceholders =
+      remainingDigits > 0 ? " " + "- ".repeat(remainingDigits).trim() : "";
+
+    return `${formattedDigits}${formattedPlaceholders}`;
   };
 
   const validatePhoneNumber = (phone: string) => {
@@ -126,13 +161,23 @@ function RegisterFormContent() {
             {/* Phone Input */}
             <div className="w-full flex justify-center">
               <input
+                ref={inputRef}
                 id="phone"
                 type="tel"
-                value={phoneNumber}
+                value={getDisplayValue()}
                 onChange={handlePhoneChange}
-                placeholder="09 - - - - - - - - -"
-                maxLength={11}
-                className="w-[300px] px-1 py-3 bg-white rounded-2xl text-gray-900 placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 text-right text-xl font-medium tracking-wider"
+                onFocus={() => setIsFocused(true)}
+                onBlur={() => setIsFocused(false)}
+                placeholder={
+                  !isFocused && (!phoneNumber || phoneNumber.length === 0)
+                    ? "0 9 - - - - - - - - -"
+                    : ""
+                }
+                className={`w-[300px] px-1 py-3 bg-white rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#F84920] focus:border-transparent transition-all duration-200 text-left text-xl font-medium tracking-wider ${
+                  isFocused
+                    ? "text-black placeholder:text-black"
+                    : "text-gray-500 placeholder:text-gray-400"
+                }`}
                 dir="ltr"
                 style={{
                   fontFamily: "monospace",
