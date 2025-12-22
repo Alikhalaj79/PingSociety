@@ -43,6 +43,9 @@ interface Event {
   location?: string;
   vicinity?: string;
   image?: string;
+  eventType?: "physical" | "online";
+  paymentType?: "free" | "paid";
+  payment_type?: "free" | "paid";
   tickets?: Ticket[];
   sponsors?: Sponsor[];
   moderators?: Moderator[];
@@ -940,8 +943,42 @@ export default function EventDetailPage() {
                         </div>
                       )}
 
-                    {/* Location & Vicinity */}
-                    {event.vicinity && (
+                    {/* Event Type */}
+                    {event.eventType && (
+                      <div className="flex items-start gap-3 flex-row-reverse">
+                        <svg
+                          className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-1"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          {event.eventType === "online" ? (
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                            />
+                          ) : (
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                            />
+                          )}
+                        </svg>
+                        <div className="text-right">
+                          <p className="text-gray-400 text-sm">نوع رویداد</p>
+                          <p className="text-white font-semibold">
+                            {event.eventType === "online" ? "آنلاین" : "حضوری"}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Location & Vicinity - Only show for physical events */}
+                    {event.vicinity && event.eventType !== "online" && (
                       <div className="flex items-start gap-3 flex-row-reverse">
                         <svg
                           className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1"
@@ -972,19 +1009,28 @@ export default function EventDetailPage() {
                     )}
 
                     {/* Price */}
-                    {event.tickets &&
+                    {((event.tickets &&
                       event.tickets.length > 0 &&
                       event.tickets[0]?.price !== undefined &&
-                      event.tickets[0]?.price !== null && (
+                      event.tickets[0]?.price !== null) ||
+                      event.paymentType ||
+                      event.payment_type) && (
                         <div className="flex items-start gap-3 flex-row-reverse">
                           <div className="text-right">
                             <p className="text-gray-400 text-sm">هزینه</p>
                             <p className="text-white font-semibold font-vazirmatn">
-                              {event.tickets[0].price === 0
+                              {(event.paymentType || event.payment_type) === "free" ||
+                              (event.tickets &&
+                                event.tickets.length > 0 &&
+                                event.tickets[0]?.price === 0)
                                 ? "رایگان"
-                                : `${event.tickets[0].price.toLocaleString(
+                                : event.tickets &&
+                                  event.tickets.length > 0 &&
+                                  event.tickets[0]?.price
+                                ? `${event.tickets[0].price.toLocaleString(
                                     "fa-IR"
-                                  )} ریال`}
+                                  )} ریال`
+                                : "رایگان"}
                             </p>
                           </div>
                         </div>

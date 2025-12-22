@@ -18,6 +18,10 @@ interface Event {
   capacity?: number;
   registered?: number;
   status?: "upcoming" | "ongoing" | "completed" | "cancelled";
+  eventType?: "physical" | "online";
+  event_type?: "physical" | "online";
+  paymentType?: "free" | "paid";
+  payment_type?: "free" | "paid";
 }
 
 export default function Events() {
@@ -54,6 +58,19 @@ export default function Events() {
         } else {
           eventsData = [];
         }
+        // Normalize eventType and paymentType fields - support both camelCase and snake_case
+        eventsData = eventsData.map(
+          (event: Event | Record<string, unknown>) => ({
+            ...event,
+            eventType:
+              (event as Event).eventType ||
+              (event as Record<string, unknown>).event_type ||
+              "physical",
+            paymentType:
+              (event as Event).paymentType ||
+              (event as Record<string, unknown>).payment_type,
+          })
+        ) as Event[];
         setEvents(eventsData);
       } else {
         setError(json?.error || "خطا در دریافت رویدادها");
@@ -118,10 +135,7 @@ export default function Events() {
 
   if (loading) {
     return (
-      <section
-        id="events"
-        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
-      >
+      <section id="events" className="py-12 sm:py-16 md:py-20 bg-[#080358]">
         <Container>
           <div className="text-center mb-12">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
@@ -147,10 +161,7 @@ export default function Events() {
 
   if (error) {
     return (
-      <section
-        id="events"
-        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
-      >
+      <section id="events" className="py-12 sm:py-16 md:py-20 bg-[#080358]">
         <Container>
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
@@ -176,10 +187,7 @@ export default function Events() {
 
   if (safeEvents.length === 0) {
     return (
-      <section
-        id="events"
-        className="py-12 sm:py-16 md:py-20 bg-[#080358]"
-      >
+      <section id="events" className="py-12 sm:py-16 md:py-20 bg-[#080358]">
         <Container>
           <div className="text-center">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
@@ -316,7 +324,9 @@ export default function Events() {
                         </div>
                       )}
 
-                      {event.price !== undefined && event.price !== null && (
+                      {((event.price !== undefined && event.price !== null) ||
+                        event.paymentType ||
+                        event.payment_type) && (
                         <div className="flex items-center text-gray-300 text-sm flex-row-reverse">
                           <svg
                             className="w-5 h-5 ml-2 text-green-400"
@@ -332,9 +342,12 @@ export default function Events() {
                             />
                           </svg>
                           <span className="text-right font-vazirmatn">
-                            {event.price === 0
+                            {(event.paymentType || event.payment_type) ===
+                              "free" || event.price === 0
                               ? "رایگان"
-                              : `${event.price.toLocaleString()} تومان`}
+                              : event.price
+                              ? `${event.price.toLocaleString()} تومان`
+                              : "رایگان"}
                           </span>
                         </div>
                       )}

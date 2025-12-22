@@ -40,6 +40,11 @@ export async function GET(
     }
 
     const event = data.event || data.data || data;
+    
+    // Normalize paymentType field - support both camelCase and snake_case
+    if (event && typeof event === "object") {
+      event.paymentType = event.paymentType || event.payment_type;
+    }
 
     return NextResponse.json({ success: true, event });
   } catch (error) {
