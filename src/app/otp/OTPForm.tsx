@@ -6,6 +6,12 @@ import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
 
+declare global {
+  interface Window {
+    OTPCredential?: unknown;
+  }
+}
+
 function OTPContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [phoneNumber, setPhoneNumber] = useState("");
@@ -32,7 +38,6 @@ function OTPContent() {
   useEffect(() => {
     if (!phoneNumber) return;
     // Guard unsupported browsers/contexts (must be HTTPS + same device)
-    // @ts-ignore - OTPCredential is still experimental in TS lib
     if (!("OTPCredential" in window)) return;
 
     const abortController = new AbortController();
@@ -40,9 +45,10 @@ function OTPContent() {
     const listenForOtp = async () => {
       try {
         const otpCredential = (await navigator.credentials.get({
-          // @ts-ignore - experimental type
           otp: { transport: ["sms"] },
           signal: abortController.signal,
+        } as CredentialRequestOptions & {
+          otp: { transport: string[] };
         })) as { code?: string } | null;
 
         const code = otpCredential?.code?.replace(/\D/g, "");
