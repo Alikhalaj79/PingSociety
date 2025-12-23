@@ -159,19 +159,6 @@ interface OverviewTabProps {
   cancelingOrders?: Set<string | number>;
 }
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "active":
-      return "bg-green-500/20 text-green-400 border-green-500/30";
-    case "used":
-      return "bg-blue-500/20 text-blue-400 border-blue-500/30";
-    case "cancelled":
-      return "bg-red-500/20 text-red-400 border-red-500/30";
-    default:
-      return "bg-gray-500/20 text-gray-400 border-gray-500/30";
-  }
-};
-
 // FIX: این تابع رو دوباره اضافه کن (برای tickets) – قبلاً جا افتاده بود
 const getStatusText = (status?: string) => {
   if (!status) return "نامشخص";
@@ -271,38 +258,8 @@ export default function OverviewTab({
     eventTitle?: string;
   } | null>(null);
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "";
-    const trimmed = dateString.trim();
-
-    // اگر تاریخ به‌صورت شمسی از بک‌اند آمده (مثلاً "1404/09/07 23:30:00")
-    // بدون تبدیل تقویم نمایش می‌دهیم تا سال و ساعت جابه‌جا نشود
-    const jalaliMatch = trimmed.match(
-      /^(\d{3,4})[\/\-](\d{1,2})[\/\-](\d{1,2})(?:\s+(\d{1,2}:\d{2})(?::\d{2})?)?$/
-    );
-
-    if (jalaliMatch) {
-      const year = parseInt(jalaliMatch[1], 10);
-      if (year >= 1300 && year <= 1600) {
-        const month = jalaliMatch[2].padStart(2, "0");
-        const day = jalaliMatch[3].padStart(2, "0");
-        return `${year}/${month}/${day}`;
-      }
-    }
-
-    try {
-      const date = new Date(trimmed);
-      if (isNaN(date.getTime())) return dateString;
-
-      return new Intl.DateTimeFormat("fa-IR", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-      }).format(date);
-    } catch {
-      return dateString;
-    }
-  };
+  const GOOGLE_CALENDAR_FALLBACK_URL =
+    "https://calendar.app.google/uxqMM5EGMtnkkLF8A";
 
   const handleImageError = (orderId: string | number) => {
     setImageErrors((prev) => new Set(prev).add(orderId));
@@ -628,6 +585,11 @@ export default function OverviewTab({
     }, 250);
   };
 
+  // موقت: لینک ثابت گوگل کلندر تا بک‌اند آماده شود
+  const handleAddToGoogle = () => {
+    window.open(GOOGLE_CALENDAR_FALLBACK_URL, "_blank");
+  };
+
   const isValidImageUrl = (url?: string): boolean => {
     if (!url || typeof url !== "string") return false;
     const trimmedUrl = url.trim();
@@ -774,8 +736,6 @@ export default function OverviewTab({
                 {tickets.map((ticket) => {
                   const event = ticket.event;
                   const eventTitle = event?.title || `بلیط #${ticket.id}`;
-                  const eventStartDate = event?.startDate;
-                  const eventLocation = event?.location;
                   const eventImage = event?.image;
 
                   const hasImageData =
@@ -866,7 +826,13 @@ export default function OverviewTab({
                           </div>
 
                           <div className="flex items-center justify-end mt-auto">
-                            {ticket.status?.toUpperCase() === "ACTIVE" && (
+                            {(() => {
+                              const status = (
+                                ticket.status || ""
+                              ).toUpperCase();
+                              const canShowCalendar = status !== "CANCELLED";
+                              return canShowCalendar;
+                            })() && (
                               <>
                                 {/* QR Code Button - Commented out */}
                                 {/* {ticket.qrCode && (
@@ -908,6 +874,28 @@ export default function OverviewTab({
                                     />
                                   </svg>
                                   چاپ بلیط
+                                </button>
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleAddToGoogle();
+                                  }}
+                                  className="px-4 py-2 border border-white/20 text-white rounded-lg hover:bg-white/10 transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed mr-3"
+                                >
+                                  <svg
+                                    className="w-5 h-5"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                                    />
+                                  </svg>
+                                  اضافه کردن به تقویم
                                 </button>
                               </>
                             )}
