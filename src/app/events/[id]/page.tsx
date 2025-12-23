@@ -417,7 +417,9 @@ export default function EventDetailPage() {
       // Use Next.js API proxy to avoid CORS issues
       const res = await fetch(`/api/event/${eventId}`, {
         method: "GET",
-        cache: "no-store",
+        // Use ISR cache from the API route to avoid hammering backend
+        cache: "force-cache",
+        next: { revalidate: 600 },
       });
 
       const json = await res.json();

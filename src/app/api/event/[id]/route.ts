@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_CONFIG } from "@/config/api";
 
-export const dynamic = "force-dynamic";
+// Cache each event detail for 10 minutes; data is not realtime on landing/detail.
+export const revalidate = 600;
 
 export async function GET(
   _req: NextRequest,
@@ -14,6 +15,8 @@ export async function GET(
   try {
     const response = await fetch(backendUrl, {
       headers: { Accept: "application/json" },
+      next: { revalidate: 600 },
+      cache: "force-cache",
     });
 
     if (!response.ok) {
@@ -46,7 +49,12 @@ export async function GET(
       event.paymentType = event.paymentType || event.payment_type;
     }
 
-    return NextResponse.json({ success: true, event });
+    const res = NextResponse.json({ success: true, event });
+    res.headers.set(
+      "Cache-Control",
+      "s-maxage=600, stale-while-revalidate=60"
+    );
+    return res;
   } catch (error) {
     console.error("Error fetching event details:", error);
     return NextResponse.json(

@@ -44,7 +44,9 @@ export default function Events() {
       // Use Next.js API proxy to avoid CORS/mixed-content
       const res = await fetch("/api/event", {
         method: "GET",
-        cache: "no-store",
+        // Let Next.js cache this response via the API route (ISR)
+        cache: "force-cache",
+        next: { revalidate: 600 },
       });
       const json = await res.json();
       if (res.ok && json?.success) {

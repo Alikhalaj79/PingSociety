@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_CONFIG } from "@/config/api";
 
+// Cache the events list for 10 minutes. Landing page data is not realtime.
+export const revalidate = 600;
+
 export async function GET(_request: NextRequest) {
   try {
     const backendUrl = `${API_CONFIG.BASE_URL}/event`;
@@ -12,7 +15,8 @@ export async function GET(_request: NextRequest) {
         Accept: "application/json",
       },
       // Do not forward credentials for public events
-      cache: "no-store",
+      next: { revalidate: 600 },
+      cache: "force-cache",
     });
 
     const text = await res.text();
@@ -47,7 +51,12 @@ export async function GET(_request: NextRequest) {
       eventsArray = [];
     }
 
-    return NextResponse.json({ success: true, events: eventsArray });
+    const response = NextResponse.json({ success: true, events: eventsArray });
+    response.headers.set(
+      "Cache-Control",
+      "s-maxage=600, stale-while-revalidate=60"
+    );
+    return response;
   } catch (e) {
     return NextResponse.json(
       { success: false, error: "خطا در ارتباط با سرور" },
