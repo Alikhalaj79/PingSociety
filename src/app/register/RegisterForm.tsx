@@ -4,12 +4,13 @@ import { useState, Suspense, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import { translateOtpError } from "@/lib/otpErrors";
+import toast from "react-hot-toast";
 // No need for React Query - using Next.js API routes
 
 // کامپوننت داخلی: کل منطق و UI رو اینجا می‌ذاریم (فقط در کلاینت رندر می‌شه)
 function RegisterFormContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -24,7 +25,6 @@ function RegisterFormContent() {
     // Limit to 11 digits total - no automatic prefix
     if (digitsOnly.length <= 11) {
       setPhoneNumber(digitsOnly);
-      setError("");
 
       // Set cursor position after value updates (accounting for spaces in formatted display)
       setTimeout(() => {
@@ -76,14 +76,22 @@ function RegisterFormContent() {
 
     const validationError = validatePhoneNumber(phoneNumber);
     if (validationError) {
-      setError(validationError);
+      toast.error(validationError, {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
       return;
     }
 
-    setError("");
-
     setIsLoading(true);
-    setError("");
 
     try {
       // Call backend API directly
@@ -123,10 +131,33 @@ function RegisterFormContent() {
           : `/otp?phone=${encodeURIComponent(phoneNumber)}`;
         router.push(otpUrl);
       } else {
-        setError(data.message || data.error || "خطا در ارسال کد تایید");
+        const errorMsg = data.message || data.error || "خطا در ارسال کد تایید";
+        toast.error(translateOtpError(errorMsg), {
+          style: {
+            background: "#7f1d1d",
+            color: "#fff",
+            border: "1px solid #dc2626",
+            borderRadius: "8px",
+          },
+          iconTheme: {
+            primary: "#dc2626",
+            secondary: "#fff",
+          },
+        });
       }
     } catch {
-      setError("خطا در ارتباط با سرور");
+      toast.error("خطا در ارتباط با سرور", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -179,9 +210,6 @@ function RegisterFormContent() {
                 }}
               />
             </div>
-            {error && (
-              <p className="text-sm text-red-400 text-center">{error}</p>
-            )}
 
             {/* Submit Button */}
             <div className="w-full flex justify-center ">

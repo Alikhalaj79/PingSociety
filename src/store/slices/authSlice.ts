@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
 import { apiService, SendOtpRequest } from "@/services/api";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import { translateOtpError } from "@/lib/otpErrors";
 
 // Types
 export interface User {
@@ -37,7 +38,8 @@ export const sendOtp = createAsyncThunk(
       if (response.success) {
         return { message: response.message };
       } else {
-        return rejectWithValue(response.error || "خطا در ارسال کد تایید");
+        const errorMsg = response.error || "خطا در ارسال کد تایید";
+        return rejectWithValue(translateOtpError(errorMsg));
       }
     } catch {
       return rejectWithValue("خطا در ارتباط با سرور");
@@ -66,9 +68,8 @@ export const verifyOtp = createAsyncThunk(
       const data = await res.json().catch(() => ({}));
 
       if (!res.ok || !data?.success) {
-        return rejectWithValue(
-          data?.message || data?.error || "کد تایید نامعتبر است"
-        );
+        const errorMsg = data?.message || data?.error || "کد تایید نامعتبر است";
+        return rejectWithValue(translateOtpError(errorMsg));
       }
 
       // Store token if provided

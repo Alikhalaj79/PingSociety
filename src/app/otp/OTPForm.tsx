@@ -5,6 +5,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/hooks/useAuth";
 import toast from "react-hot-toast";
+import { translateOtpError } from "@/lib/otpErrors";
 
 declare global {
   interface Window {
@@ -15,7 +16,6 @@ declare global {
 function OTPContent() {
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [phoneNumber, setPhoneNumber] = useState("");
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const formRef = useRef<HTMLFormElement | null>(null);
   const searchParams = useSearchParams();
@@ -117,17 +117,38 @@ function OTPContent() {
     const otpValue = otp.join("");
 
     if (otpValue.length !== 6) {
-      setError("لطفاً کد ۶ رقمی را کامل وارد کنید");
+      toast.error("لطفاً کد ۶ رقمی را کامل وارد کنید", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
       return;
     }
 
     if (!phoneNumber) {
-      setError("شماره موبایل یافت نشد");
+      toast.error("شماره موبایل یافت نشد", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
       return;
     }
 
     setIsLoading(true);
-    setError("");
 
     try {
       // Prepare request data
@@ -164,7 +185,7 @@ function OTPContent() {
         console.log("Response is not JSON, getting text:", parseError);
         const textData = await response.text();
         console.log("Response text:", textData);
-        data = { error: "Invalid response format from server" };
+        data = { error: "پاسخ نامعتبر از سرور" };
       }
 
       if (response.ok && data.success) {
@@ -201,10 +222,33 @@ function OTPContent() {
           router.push("/");
         }
       } else {
-        setError(data.message || data.error || "کد تایید نامعتبر است");
+        const errorMsg = data.message || data.error || "کد تایید نامعتبر است";
+        toast.error(translateOtpError(errorMsg), {
+          style: {
+            background: "#7f1d1d",
+            color: "#fff",
+            border: "1px solid #dc2626",
+            borderRadius: "8px",
+          },
+          iconTheme: {
+            primary: "#dc2626",
+            secondary: "#fff",
+          },
+        });
       }
     } catch {
-      setError("خطا در ارتباط با سرور");
+      toast.error("خطا در ارتباط با سرور", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -212,12 +256,22 @@ function OTPContent() {
 
   const handleResend = async () => {
     if (!phoneNumber) {
-      setError("شماره موبایل یافت نشد");
+      toast.error("شماره موبایل یافت نشد", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
       return;
     }
 
     setIsLoading(true);
-    setError("");
 
     try {
       const response = await fetch(
@@ -236,11 +290,46 @@ function OTPContent() {
       if (response.ok && data.success) {
         // Clear OTP inputs
         setOtp(["", "", "", "", "", ""]);
+        toast.success("کد تایید مجدداً ارسال شد", {
+          style: {
+            background: "#065f46",
+            color: "#fff",
+            border: "1px solid #10b981",
+            borderRadius: "8px",
+          },
+          iconTheme: {
+            primary: "#10b981",
+            secondary: "#fff",
+          },
+        });
       } else {
-        setError(data.message || data.error || "خطا در ارسال مجدد کد");
+        const errorMsg = data.message || data.error || "خطا در ارسال مجدد کد";
+        toast.error(translateOtpError(errorMsg), {
+          style: {
+            background: "#7f1d1d",
+            color: "#fff",
+            border: "1px solid #dc2626",
+            borderRadius: "8px",
+          },
+          iconTheme: {
+            primary: "#dc2626",
+            secondary: "#fff",
+          },
+        });
       }
     } catch {
-      setError("خطا در ارتباط با سرور");
+      toast.error("خطا در ارتباط با سرور", {
+        style: {
+          background: "#7f1d1d",
+          color: "#fff",
+          border: "1px solid #dc2626",
+          borderRadius: "8px",
+        },
+        iconTheme: {
+          primary: "#dc2626",
+          secondary: "#fff",
+        },
+      });
     } finally {
       setIsLoading(false);
     }
@@ -270,11 +359,6 @@ function OTPContent() {
               کد ۶ رقمی ارسال شده را وارد کنید
             </p>
           </div>
-
-          {/* Error Display */}
-          {error && (
-            <p className="text-sm text-red-400 text-center mb-2">{error}</p>
-          )}
 
           {/* OTP Form */}
           <form

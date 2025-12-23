@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
+import { translateOtpError } from "@/lib/otpErrors";
 
 export async function POST(request: NextRequest) {
   try {
@@ -171,10 +172,11 @@ export async function POST(request: NextRequest) {
       return nextResponse;
     } else {
       console.log("❌ Backend API error:", backendJson);
+      const errorMsg = backendJson.message || backendJson.error || "کد تایید نامعتبر است";
       return NextResponse.json(
         {
           success: false,
-          error: backendJson.message || "کد تایید نامعتبر است",
+          error: translateOtpError(errorMsg),
         },
         { status: backendResponse.status }
       );
