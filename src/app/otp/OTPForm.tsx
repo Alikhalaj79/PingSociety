@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { API_CONFIG, API_ENDPOINTS } from "@/config/api";
 import { useAuth } from "@/hooks/useAuth";
@@ -11,6 +11,7 @@ function OTPContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const formRef = useRef<HTMLFormElement | null>(null);
   const searchParams = useSearchParams();
   const router = useRouter();
   const { checkAuth } = useAuth();
@@ -27,7 +28,49 @@ function OTPContent() {
 
   const returnTo = searchParams.get("returnTo");
 
-  // No dev OTP autofill (SMS-only flow)
+  // Web OTP API (Android Chrome): auto-read SMS sent to this device and submit
+  useEffect(() => {
+    if (!phoneNumber) return;
+    // Guard unsupported browsers/contexts (must be HTTPS + same device)
+    // @ts-ignore - OTPCredential is still experimental in TS lib
+    if (!("OTPCredential" in window)) return;
+
+    const abortController = new AbortController();
+
+    const listenForOtp = async () => {
+      try {
+        const otpCredential = (await navigator.credentials.get({
+          // @ts-ignore - experimental type
+          otp: { transport: ["sms"] },
+          signal: abortController.signal,
+        })) as { code?: string } | null;
+
+        const code = otpCredential?.code?.replace(/\D/g, "");
+        if (code && code.length >= 6) {
+          const digits = code.slice(0, 6).split("");
+          setOtp(digits);
+
+          // Focus last field for visual feedback
+          const lastInput = document.getElementById("otp-5");
+          lastInput?.focus();
+
+          // Auto-submit when filled
+          if (formRef.current) {
+            formRef.current.requestSubmit();
+          }
+        }
+      } catch (err) {
+        // Silence aborts; log unexpected errors for debugging
+        if (!(err instanceof DOMException && err.name === "AbortError")) {
+          console.warn("Web OTP autofill failed:", err);
+        }
+      }
+    };
+
+    listenForOtp();
+
+    return () => abortController.abort();
+  }, [phoneNumber]);
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
@@ -229,6 +272,7 @@ function OTPContent() {
 
           {/* OTP Form */}
           <form
+            ref={formRef}
             onSubmit={handleSubmit}
             className="flex flex-col items-center space-y-4 w-full"
           >
