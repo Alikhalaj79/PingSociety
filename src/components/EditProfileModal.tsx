@@ -67,7 +67,7 @@ export default function EditProfileModal({
     { value: "website", label: "وب‌سایت" },
     { value: "linkedin", label: "LinkedIn" },
     { value: "instagram", label: "Instagram" },
-    { value: "word_of_mouth", label: "معرفی/دهان به دهان" },
+    { value: "word_of_mouth", label: "دوستان و آشنایان" },
     { value: "others", label: "سایر" },
   ]);
   const router = useRouter();

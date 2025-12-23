@@ -913,12 +913,6 @@ export default function OverviewTab({
                                     onClick={(e) => e.stopPropagation()}
                                     className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
                                   >
-                                    <path
-                                      strokeLinecap="round"
-                                      strokeLinejoin="round"
-                                      strokeWidth={2}
-                                      d="M5 10l7-7m0 0l7 7m-7-7v18"
-                                    />
                                     لینک گوگل میت
                                   </a>
                                 )}
