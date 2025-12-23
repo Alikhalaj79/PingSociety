@@ -4,9 +4,9 @@ import { NextResponse, type NextRequest } from "next/server";
 // در صورت نیاز به فعال‌سازی، منطق تولید لینک گوگل‌کلندر را اینجا اضافه کنید.
 export async function GET(
   _req: NextRequest,
-  context: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
-  const eventId = context?.params?.id;
+  const { id: eventId } = await context.params;
   return NextResponse.json(
     {
       message: "Google Calendar URL endpoint is currently disabled.",
