@@ -227,7 +227,7 @@ export default function Events() {
               <Link href={`/events/${event.id}`} className="group block h-full">
                 <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl overflow-hidden border border-white/10 hover:border-white/20 transition-all duration-300 transform hover:scale-[1.02] hover:shadow-2xl hover:shadow-purple-500/10 h-full flex flex-col">
                   {/* Image */}
-                  <div className="relative w-full h-48 sm:h-56 overflow-hidden flex-shrink-0">
+                  <div className="relative w-full h-72 sm:h-80 overflow-hidden flex-shrink-0 bg-gradient-to-br from-gray-800/50 to-gray-900/50 flex items-center justify-center">
                     {event.image &&
                     isValidImageUrl(event.image) &&
                     !imageErrors.has(event.id) ? (
@@ -235,9 +235,10 @@ export default function Events() {
                         src={event.image}
                         alt={event.title}
                         fill
-                        className="object-cover group-hover:scale-110 transition-transform duration-500"
+                        className="object-contain group-hover:scale-105 transition-transform duration-500"
                         onError={() => handleImageError(event.id)}
                         unoptimized
+                        sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                       />
                     ) : (
                       <div className="w-full h-full bg-gradient-to-br from-blue-500/20 to-purple-500/20 flex items-center justify-center">
@@ -257,11 +258,11 @@ export default function Events() {
                       </div>
                     )}
                     {event.status === "completed" && (
-                      <div className="absolute top-3 right-3 bg-red-600/90 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg">
+                      <div className="absolute top-3 right-3 bg-red-600/90 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg z-10">
                         رویداد گذشته
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent pointer-events-none"></div>
                   </div>
 
                   {/* Content */}
@@ -271,9 +272,25 @@ export default function Events() {
                     </h3>
 
                     {event.description && (
-                      <p className="text-gray-400 text-sm mb-4 text-right line-clamp-2 overflow-hidden text-ellipsis">
-                        {event.description}
-                      </p>
+                      <div className="relative mb-4">
+                        <p
+                          className="text-gray-400 text-sm text-right "
+                          style={{
+                            display: "-webkit-box",
+                            WebkitLineClamp: 2,
+                            WebkitBoxOrient: "vertical",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            // lineHeight: "1.6",
+                            width: "100%",
+                          }}
+                        >
+                          {event.description}
+                        </p>
+                        <span className="pointer-events-none absolute text-gray-300 text-sm leading-none left-2 sm:left-3 md:left-4 bottom-0.5 sm:bottom-1">
+                          ...
+                        </span>
+                      </div>
                     )}
 
                     <div className="space-y-2 mb-4">

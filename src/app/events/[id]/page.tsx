@@ -639,18 +639,16 @@ export default function EventDetailPage() {
       <div className="min-h-screen bg-[#080358] text-white">
         <Header />
 
-        {/* Hero Section Skeleton */}
-        <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-          <div className="w-full h-full bg-[#080358]/40 animate-pulse"></div>
-          <div className="absolute inset-0 bg-gradient-to-t from-[#080358] via-[#080358]/50 to-transparent"></div>
-        </section>
-
-        {/* Main Content Skeleton */}
-        <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#080358] to-[#0a0440]">
+        {/* Main Content Skeleton - Unified */}
+        <section className="relative bg-gradient-to-b from-[#080358] to-[#0a0440]">
+          <div className="py-12 sm:py-16 md:py-20">
           <Container>
-            <div className="grid lg:grid-cols-3 gap-8 animate-pulse">
-              {/* Main Content - Left Side */}
-              <div className="lg:col-span-2 space-y-8">
+            <div className="grid lg:grid-cols-2 gap-8 animate-pulse">
+              {/* Left Side - Image and Details */}
+              <div className="space-y-8">
+                {/* Image Skeleton */}
+                <div className="w-full aspect-square bg-[#080358]/40 rounded-2xl"></div>
+
                 {/* Title, Description Section */}
                 <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
                   {/* Title */}
@@ -688,7 +686,7 @@ export default function EventDetailPage() {
                 </div>
               </div>
 
-              {/* Sidebar - Right Side */}
+              {/* Right Side - Event Info Card */}
               <div className="lg:col-span-1">
                 <div className="sticky top-24 space-y-6">
                   {/* Event Info Card */}
@@ -733,6 +731,7 @@ export default function EventDetailPage() {
               </div>
             </div>
           </Container>
+          </div>
         </section>
 
         <Footer />
@@ -783,36 +782,44 @@ export default function EventDetailPage() {
     <div className="min-h-screen bg-[#080358] text-white">
       <Header />
 
-      {/* Hero Section with Image */}
-      <section className="relative h-[60vh] min-h-[400px] overflow-hidden">
-        {/* Background Image */}
-        {event.image && isValidImageUrl(event.image) && !imageError ? (
-          <Image
-            src={event.image}
-            alt={event.title}
-            fill
-            className="object-cover"
-            onError={() => setImageError(true)}
-            unoptimized
-            priority
-          />
-        ) : (
-          <div className="w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20"></div>
-        )}
-
-        {/* Gradient Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent"></div>
-
-        {/* Content (hero overlay title removed as requested) */}
-        <div className="relative h-full flex flex-col justify-end pb-12"></div>
-      </section>
-
-      {/* Main Content */}
-      <section className="py-12 sm:py-16 md:py-20 bg-gradient-to-b from-[#080358] to-[#0a0440]">
+      {/* Main Content - Unified Section */}
+      <section className="relative bg-gradient-to-b from-[#080358] to-[#0a0440]">
+        <div className="py-12 sm:py-16 md:py-20">
         <Container>
-          <div className="grid lg:grid-cols-3 gap-8">
-            {/* Main Content - Left Side */}
-            <div className="lg:col-span-2 space-y-8">
+          <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
+            {/* Left Side - Image and Details */}
+            <div className="space-y-8">
+              {/* Event Image */}
+              <div className="relative w-full aspect-square lg:aspect-[4/3] overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50">
+                {event.image && isValidImageUrl(event.image) && !imageError ? (
+                  <Image
+                    src={event.image}
+                    alt={event.title}
+                    fill
+                    className="object-contain"
+                    onError={() => setImageError(true)}
+                    unoptimized
+                    priority
+                  />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                    <svg
+                      className="w-16 h-16 text-white/30"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                      />
+                    </svg>
+                  </div>
+                )}
+              </div>
+
               {/* Title, Description and Moderators Section */}
               <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
                 {/* Title */}
@@ -826,7 +833,10 @@ export default function EventDetailPage() {
                     <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
                       درباره رویداد
                     </h2>
-                    <p className="text-gray-300 leading-relaxed text-base sm:text-lg whitespace-pre-line text-right">
+                    <p
+                      className="text-gray-300 leading-relaxed text-base sm:text-lg whitespace-pre-line text-right text-justify"
+                      dir="rtl"
+                    >
                       {event.description}
                     </p>
                   </div>
@@ -880,11 +890,11 @@ export default function EventDetailPage() {
               )}
             </div>
 
-            {/* Sidebar - Right Side */}
-            <div className="lg:col-span-1">
-              <div className="sticky top-24 space-y-6">
+            {/* Right Side - Event Info Card */}
+            <div className="lg:col-span-1 lg:pt-2">
+              <div className="sticky top-20 space-y-6">
                 {/* Event Info Card */}
-                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-lg shadow-black/20">
                   <h3 className="text-xl font-bold mb-6 text-right">
                     اطلاعات رویداد
                   </h3>
@@ -1055,7 +1065,7 @@ export default function EventDetailPage() {
                 {isEventCompleted ? (
                   <button
                     disabled
-                    className="w-full bg-gray-600 text-gray-300 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
+                    className="w-full bg-gray-700 text-gray-300 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
                   >
                     این رویداد به اتمام رسیده است
                   </button>
@@ -1064,14 +1074,14 @@ export default function EventDetailPage() {
                   event.tickets[0]?.isAvailable === false ? (
                   <button
                     disabled
-                    className="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
+                    className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
                   >
                     ثبت نام در رویداد
                   </button>
                 ) : hasPurchased ? (
                   <button
                     disabled
-                    className="w-full bg-gray-600 text-gray-400 font-bold py-4 px-6 rounded-xl cursor-not-allowed"
+                    className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
                   >
                     شما قبلا این ایونت رو تهیه کردید
                   </button>
@@ -1079,7 +1089,7 @@ export default function EventDetailPage() {
                   <button
                     onClick={handleRegister}
                     disabled={orderLoading}
-                    className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg shadow-[#f84920]/20 disabled:opacity-60 disabled:hover:scale-100"
+                    className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-[#f84920]/20 disabled:opacity-60 text-sm"
                   >
                     {orderLoading ? "در حال ثبت..." : "ثبت نام در رویداد"}
                   </button>
@@ -1088,7 +1098,7 @@ export default function EventDetailPage() {
                 {/* Back Button */}
                 <button
                   onClick={() => router.back()}
-                  className="w-full border border-white/20 hover:border-white/40 text-white font-semibold py-3 px-6 rounded-xl transition-all duration-300"
+                  className="w-full border border-white/20 hover:border-white/40 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 text-sm"
                 >
                   بازگشت
                 </button>
@@ -1096,6 +1106,7 @@ export default function EventDetailPage() {
             </div>
           </div>
         </Container>
+        </div>
       </section>
 
       <Footer />
