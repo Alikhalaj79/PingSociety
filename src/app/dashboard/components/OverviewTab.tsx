@@ -118,6 +118,8 @@ interface Ticket {
     venueLocationLink?: string;
     venue_name?: string;
     venueName?: string;
+    eventType?: "physical" | "online";
+    event_type?: "physical" | "online";
   };
   user?: {
     id?: number;
@@ -737,6 +739,11 @@ export default function OverviewTab({
                   const event = ticket.event;
                   const eventTitle = event?.title || `بلیط #${ticket.id}`;
                   const eventImage = event?.image;
+                  const eventDateTime = formatDateTime(event?.startDate);
+                  const isOnlineEvent =
+                    (event?.eventType || event?.event_type || "")
+                      .toString()
+                      .toLowerCase() === "online";
 
                   const hasImageData =
                     eventImage &&
@@ -822,6 +829,27 @@ export default function OverviewTab({
                                 </span>
                               </div>
                             )}
+                            {isOnlineEvent &&
+                              (eventDateTime.date || eventDateTime.time) && (
+                                <div className="flex flex-col gap-1 text-gray-200 text-sm text-left">
+                                  {eventDateTime.date && (
+                                    <div>
+                                      <span className="font-medium text-white/90">
+                                        تاریخ:
+                                      </span>{" "}
+                                      <span>{eventDateTime.date}</span>
+                                    </div>
+                                  )}
+                                  {eventDateTime.time && (
+                                    <div>
+                                      <span className="font-medium text-white/90">
+                                        ساعت:
+                                      </span>{" "}
+                                      <span>{eventDateTime.time}</span>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             {/* Event Date, Location, Price, Used At - unchanged */}
                           </div>
 
@@ -852,29 +880,48 @@ export default function OverviewTab({
                                   </button>
                                 )} */}
 
-                                {/* Print Ticket Button */}
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handlePrintTicket(ticket, event);
-                                  }}
-                                  className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
-                                >
-                                  <svg
-                                    className="w-5 h-5"
-                                    fill="none"
-                                    stroke="currentColor"
-                                    viewBox="0 0 24 24"
+                                {/* Print Ticket Button (hidden for online events) */}
+                                {!isOnlineEvent && (
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handlePrintTicket(ticket, event);
+                                    }}
+                                    className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
+                                  >
+                                    <svg
+                                      className="w-5 h-5"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                      />
+                                    </svg>
+                                    چاپ بلیط
+                                  </button>
+                                )}
+                                {isOnlineEvent && (
+                                  <a
+                                    href="https://meet.google.com/nmu-mgxh-ify"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
                                   >
                                     <path
                                       strokeLinecap="round"
                                       strokeLinejoin="round"
                                       strokeWidth={2}
-                                      d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"
+                                      d="M5 10l7-7m0 0l7 7m-7-7v18"
                                     />
-                                  </svg>
-                                  چاپ بلیط
-                                </button>
+                                    لینک گوگل میت
+                                  </a>
+                                )}
                                 <button
                                   onClick={(e) => {
                                     e.stopPropagation();
