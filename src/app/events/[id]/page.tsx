@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useRef } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Container from "@/components/Container";
 import Header from "@/components/Header";
@@ -92,6 +92,7 @@ interface Order {
 export default function EventDetailPage() {
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const eventId = params?.id as string;
 
   const [event, setEvent] = useState<Event | null>(null);
@@ -104,6 +105,8 @@ export default function EventDetailPage() {
   const [currentOrder, setCurrentOrder] = useState<Order | null>(null);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [hasCheckedEventStatus, setHasCheckedEventStatus] = useState(false);
+  const [hasAttemptedAutoRegister, setHasAttemptedAutoRegister] =
+    useState(false);
   // Local state to track if user has purchased - resets immediately on user change
   const [localHasPurchased, setLocalHasPurchased] = useState(false);
 
@@ -158,6 +161,12 @@ export default function EventDetailPage() {
     try {
       const ticketId =
         event?.tickets && event.tickets[0] ? event.tickets[0].id : undefined;
+      
+      // Check if event is free
+      const isFreeEvent = 
+        (event?.paymentType || event?.payment_type) === "free" ||
+        (event?.tickets && event.tickets.length > 0 && event.tickets[0]?.price === 0);
+      
       type OrderResponse = {
         success?: boolean;
         status?: string;
@@ -183,13 +192,25 @@ export default function EventDetailPage() {
       }
 
       if (res.ok) {
+        // Refresh orders and tickets after creating order
+        refreshOrders();
+        refreshTickets();
+        
+        // For free events, redirect to dashboard instead of showing modal
+        if (isFreeEvent) {
+          toast.success("ثبت نام شما موفق بود");
+          // Wait a bit for tickets to be created on backend
+          setTimeout(() => {
+            router.push(`/dashboard?eventId=${eventId}`);
+          }, 500);
+          return true;
+        }
+        
+        // For paid events, show order modal
         toast.success("سفارش با موفقیت ایجاد شد");
         const newOrder = (payload?.order || payload) as Order | null;
         setCurrentOrder(newOrder);
         setIsOrderCardOpen(true);
-        // Refresh orders and tickets after creating order
-        refreshOrders();
-        refreshTickets();
         return true;
       } else {
         // Handle already purchased case (400)
@@ -282,6 +303,11 @@ export default function EventDetailPage() {
     try {
       setOrderLoading(true);
 
+      // Check if event is free
+      const isFreeEvent = 
+        (event?.paymentType || event?.payment_type) === "free" ||
+        (event?.tickets && event.tickets.length > 0 && event.tickets[0]?.price === 0);
+
       // Check authentication first
       const authRes = await fetch("/api/auth/check-auth", {
         method: "GET",
@@ -293,8 +319,10 @@ export default function EventDetailPage() {
 
       if (!authRes.ok || !authData.isAuthenticated) {
         // User is not logged in
-        toast.error("ابتدا وارد حساب کاربری شوید");
-        const returnTo = encodeURIComponent(`/events/${eventId}`);
+        // For free events, include a flag to auto-register after login
+        const returnTo = isFreeEvent 
+          ? encodeURIComponent(`/events/${eventId}?autoRegister=true`)
+          : encodeURIComponent(`/events/${eventId}`);
         window.location.href = `/register?returnTo=${returnTo}`;
         return;
       }
@@ -316,8 +344,8 @@ export default function EventDetailPage() {
           return;
         }
 
-        // If there's a pending order, show it instead of creating a new one
-        if (pendingOrder) {
+        // For free events, don't show pending order modal, just create order
+        if (pendingOrder && !isFreeEvent) {
           setCurrentOrder(pendingOrder);
           setIsOrderCardOpen(true);
           return;
@@ -335,7 +363,7 @@ export default function EventDetailPage() {
     } finally {
       setOrderLoading(false);
     }
-  }, [eventId, createOrder, checkEvent]);
+  }, [eventId, event, createOrder, checkEvent, router]);
 
   const handleProfileSaveSuccess = useCallback(async () => {
     setIsEditProfileOpen(false);
@@ -576,6 +604,92 @@ export default function EventDetailPage() {
       fetchEventDetail();
     }
   }, [eventId, fetchEventDetail]);
+
+  // Handle auto-register for free events after login
+  useEffect(() => {
+    const autoRegister = searchParams.get("autoRegister");
+    const canAttempt =
+      autoRegister === "true" &&
+      event &&
+      eventId &&
+      !orderLoading &&
+      !hasAttemptedAutoRegister;
+
+    if (!canAttempt) return;
+
+    const runAutoRegister = async () => {
+      // Prevent duplicate attempts if effect re-runs
+      setHasAttemptedAutoRegister(true);
+      setOrderLoading(true);
+
+      try {
+        // Ensure session is authenticated even if Redux auth state hasn't hydrated yet
+        const authRes = await fetch("/api/auth/check-auth", {
+          method: "GET",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+        });
+        const authData = await authRes.json().catch(() => ({}));
+        if (!authRes.ok || !authData?.isAuthenticated) {
+          // If not authenticated, allow future retries (e.g., after token refresh)
+          setHasAttemptedAutoRegister(false);
+          return;
+        }
+
+        // Verify current status to avoid duplicate tickets
+        const result = await checkEvent(eventId);
+        const payload = unwrapResult(result);
+        const { ticket } = payload;
+
+        // If user already has a ticket, just redirect to dashboard
+        if (ticket) {
+          toast("شما قبلا این ایونت رو تهیه کردید", {
+            icon: "ℹ️",
+            duration: 4000,
+          });
+          router.push(`/dashboard?eventId=${eventId}`);
+          return;
+        }
+
+        // Only auto-register for free events
+        const isFreeEvent =
+          (event.paymentType || event.payment_type) === "free" ||
+          (event.tickets &&
+            event.tickets.length > 0 &&
+            event.tickets[0]?.price === 0);
+
+        if (!isFreeEvent) {
+          return;
+        }
+
+        const success = await createOrder();
+        if (success) {
+          // createOrder handles redirect for free events; remove autoRegister flag
+          const newUrl = window.location.pathname;
+          router.replace(newUrl);
+        }
+      } catch (error) {
+        console.error("Error in auto-register:", error);
+        toast.error("خطا در ثبت نام خودکار");
+        // Allow re-attempt if something transient failed
+        setHasAttemptedAutoRegister(false);
+      } finally {
+        setOrderLoading(false);
+      }
+    };
+
+    const timeoutId = setTimeout(runAutoRegister, 400);
+    return () => clearTimeout(timeoutId);
+  }, [
+    searchParams,
+    event,
+    eventId,
+    checkEvent,
+    createOrder,
+    router,
+    orderLoading,
+    hasAttemptedAutoRegister,
+  ]);
 
   const formatDateTime = (dateString?: string) => {
     if (!dateString) return { date: "", time: "" };

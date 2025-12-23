@@ -11,7 +11,6 @@ function OTPContent() {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [devOtpCode, setDevOtpCode] = useState(""); // For development testing
   const searchParams = useSearchParams();
   const router = useRouter();
   const { checkAuth } = useAuth();
@@ -28,13 +27,7 @@ function OTPContent() {
 
   const returnTo = searchParams.get("returnTo");
 
-  // Get OTP code from localStorage for development
-  useEffect(() => {
-    const storedOtp = localStorage.getItem("dev_otp_code");
-    if (storedOtp) {
-      setDevOtpCode(storedOtp);
-    }
-  }, []);
+  // No dev OTP autofill (SMS-only flow)
 
   const handleOtpChange = (index: number, value: string) => {
     if (value.length > 1) return; // Only allow single digit
@@ -208,33 +201,10 @@ function OTPContent() {
     router.push("/register");
   };
 
-  const handleAutoFillOtp = () => {
-    if (devOtpCode && devOtpCode.length === 6) {
-      const otpArray = devOtpCode.split("");
-      setOtp(otpArray);
-    }
-  };
-
   return (
     <div className="min-h-screen bg-[#080358] flex items-center justify-center py-10 px-4 sm:px-6 lg:px-8">
       <div className="w-full max-w-lg mx-auto flex flex-col items-center justify-center">
-        {/* Development OTP Code Display - Above the form box */}
-        {devOtpCode && (
-          <div className="mb-4 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-            <p className="text-yellow-400 text-xs font-medium mb-1">
-              🧪 کد تایید برای تست:
-            </p>
-            <p className="text-yellow-300 text-sm font-bold font-mono">
-              {devOtpCode}
-            </p>
-            <button
-              onClick={handleAutoFillOtp}
-              className="mt-1 px-2 py-1 bg-yellow-500/30 text-yellow-300 text-xs rounded hover:bg-yellow-500/40 transition-colors"
-            >
-              Auto Fill
-            </button>
-          </div>
-        )}
+        {/* Development OTP display disabled (SMS-only flow) */}
 
         <div className="bg-[#080358]/60 backdrop-blur-xl rounded-3xl shadow-[0_0_50px_rgba(255,255,255,0.3)] p-10 border border-white/30 w-[400px] h-[400px] flex flex-col items-center justify-center">
           {/* Header */}

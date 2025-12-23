@@ -106,20 +106,13 @@ function RegisterFormContent() {
 
       // Check if response is successful (200 or 204)
       if (response.ok && (response.status === 200 || response.status === 204)) {
-        // Store OTP code in localStorage for development testing (if available)
-        // Check different possible field names for OTP code
-        const otpCode =
-          data.otp || data.code || data.otp_code || data.verification_code;
-
-        if (otpCode) {
-          localStorage.setItem("dev_otp_code", otpCode);
-          console.log("OTP code stored:", otpCode);
-        } else {
-          console.log(
-            "No OTP code found in response. Available fields:",
-            Object.keys(data)
-          );
-        }
+        // NOTE: Backend no longer returns OTP code; SMS flow only.
+        // Kept for reference, commented out for security.
+        // const otpCode =
+        //   data.otp || data.code || data.otp_code || data.verification_code;
+        // if (otpCode) {
+        //   localStorage.setItem("dev_otp_code", otpCode);
+        // }
 
         // Always navigate to OTP page when phone number is sent successfully
         // Preserve returnTo if it exists
