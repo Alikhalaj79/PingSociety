@@ -111,7 +111,45 @@ export default function EventDetailPage() {
   const [localHasPurchased, setLocalHasPurchased] = useState(false);
 
   // RTK hooks
-  const { isAuthenticated, user } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, user: reduxUser } = useAppSelector(
+    (state) => state.auth
+  );
+
+  // Get full user data from API to check role
+  const [fullUser, setFullUser] = useState<User | null>(null);
+
+  // Use fullUser if available, otherwise create a basic user from reduxUser
+  // This needs to be defined early so it can be used in other hooks
+  const user =
+    fullUser ||
+    (reduxUser
+      ? ({ id: Number(reduxUser.id), phone: reduxUser.phone, role: "" } as User)
+      : null);
+
+  // Fetch user data to check admin role
+  useEffect(() => {
+    if (isAuthenticated && reduxUser?.id) {
+      fetch("/api/user/me", {
+        method: "GET",
+        credentials: "include",
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.user) {
+            setFullUser(data.user);
+          }
+        })
+        .catch(() => {
+          // Ignore errors
+        });
+    } else {
+      setFullUser(null);
+    }
+  }, [isAuthenticated, reduxUser?.id]);
+
+  // Check if user is admin
+  const isAdmin = user?.role === "admin" || user?.role === "Admin";
+
   const {
     checkEvent,
     getTicketForEvent,
@@ -161,12 +199,14 @@ export default function EventDetailPage() {
     try {
       const ticketId =
         event?.tickets && event.tickets[0] ? event.tickets[0].id : undefined;
-      
+
       // Check if event is free
-      const isFreeEvent = 
+      const isFreeEvent =
         (event?.paymentType || event?.payment_type) === "free" ||
-        (event?.tickets && event.tickets.length > 0 && event.tickets[0]?.price === 0);
-      
+        (event?.tickets &&
+          event.tickets.length > 0 &&
+          event.tickets[0]?.price === 0);
+
       type OrderResponse = {
         success?: boolean;
         status?: string;
@@ -195,7 +235,7 @@ export default function EventDetailPage() {
         // Refresh orders and tickets after creating order
         refreshOrders();
         refreshTickets();
-        
+
         // For free events, redirect to dashboard instead of showing modal
         if (isFreeEvent) {
           toast.success("ثبت نام شما موفق بود");
@@ -205,7 +245,7 @@ export default function EventDetailPage() {
           }, 500);
           return true;
         }
-        
+
         // For paid events, show order modal
         toast.success("سفارش با موفقیت ایجاد شد");
         const newOrder = (payload?.order || payload) as Order | null;
@@ -304,9 +344,11 @@ export default function EventDetailPage() {
       setOrderLoading(true);
 
       // Check if event is free
-      const isFreeEvent = 
+      const isFreeEvent =
         (event?.paymentType || event?.payment_type) === "free" ||
-        (event?.tickets && event.tickets.length > 0 && event.tickets[0]?.price === 0);
+        (event?.tickets &&
+          event.tickets.length > 0 &&
+          event.tickets[0]?.price === 0);
 
       // Check authentication first
       const authRes = await fetch("/api/auth/check-auth", {
@@ -320,7 +362,7 @@ export default function EventDetailPage() {
       if (!authRes.ok || !authData.isAuthenticated) {
         // User is not logged in
         // For free events, include a flag to auto-register after login
-        const returnTo = isFreeEvent 
+        const returnTo = isFreeEvent
           ? encodeURIComponent(`/events/${eventId}?autoRegister=true`)
           : encodeURIComponent(`/events/${eventId}`);
         window.location.href = `/register?returnTo=${returnTo}`;
@@ -409,40 +451,71 @@ export default function EventDetailPage() {
     }
   }, [createOrder, eventId, checkEvent]);
 
-  const fetchEventDetail = useCallback(async () => {
-    try {
-      setLoading(true);
-      setError(null);
+  const fetchEventDetail = useCallback(
+    async (forceRefresh = false) => {
+      try {
+        setLoading(true);
+        setError(null);
 
-      // Use Next.js API proxy to avoid CORS issues
-      const res = await fetch(`/api/event/${eventId}`, {
-        method: "GET",
-        // Use ISR cache from the API route to avoid hammering backend
-        cache: "force-cache",
-        next: { revalidate: 600 },
-      });
+        // Check if refresh parameter is in URL or force refresh
+        const shouldRefresh =
+          forceRefresh ||
+          searchParams.get("refresh") === "true" ||
+          searchParams.get("nocache") === "true";
 
-      const json = await res.json();
+        // Use Next.js API proxy to avoid CORS issues
+        // Add timestamp to bypass browser cache when refreshing
+        const url = shouldRefresh
+          ? `/api/event/${eventId}?refresh=true&_t=${Date.now()}`
+          : `/api/event/${eventId}`;
 
-      if (res.ok && json?.success && json?.event) {
-        setEvent(json.event);
-      } else {
-        const errorMsg = json?.error || json?.message || "رویداد یافت نشد";
-        setError(errorMsg);
-        toast.error(errorMsg);
+        const res = await fetch(url, {
+          method: "GET",
+          // Bypass cache if refresh parameter is present
+          ...(shouldRefresh
+            ? {
+                cache: "no-store",
+                headers: {
+                  "Cache-Control": "no-cache, no-store, must-revalidate",
+                  Pragma: "no-cache",
+                },
+              }
+            : {
+                cache: "default",
+              }),
+        });
+
+        const json = await res.json();
+
+        if (res.ok && json?.success && json?.event) {
+          setEvent(json.event);
+          if (forceRefresh) {
+            toast.success("داده‌ها به‌روزرسانی شد");
+          }
+        } else {
+          const errorMsg = json?.error || json?.message || "رویداد یافت نشد";
+          setError(errorMsg);
+          toast.error(errorMsg);
+        }
+      } catch (err) {
+        console.error("Error fetching event:", err);
+        const errorMessage = "خطا در ارتباط با سرور";
+        setError(errorMessage);
+        toast.error(errorMessage);
+      } finally {
+        setLoading(false);
       }
-    } catch (err) {
-      console.error("Error fetching event:", err);
-      const errorMessage = "خطا در ارتباط با سرور";
-      setError(errorMessage);
-      toast.error(errorMessage);
-    } finally {
-      setLoading(false);
-    }
-  }, [eventId]);
+    },
+    [eventId, searchParams]
+  );
 
   // Track previous user ID to detect user changes
-  const prevUserIdRef = useRef<string | undefined>(user?.id);
+  const prevUserIdRef = useRef<number | undefined>(undefined);
+
+  // Initialize with current user ID
+  if (user?.id !== undefined && prevUserIdRef.current === undefined) {
+    prevUserIdRef.current = user.id;
+  }
   // Track previous orders/tickets length to detect data changes
   const prevOrdersLengthRef = useRef(orders.length);
   const prevTicketsLengthRef = useRef(tickets.length);
@@ -758,95 +831,95 @@ export default function EventDetailPage() {
         {/* Main Content Skeleton - Unified */}
         <section className="relative bg-gradient-to-b from-[#080358] to-[#0a0440]">
           <div className="py-12 sm:py-16 md:py-20">
-          <Container>
-            <div className="grid lg:grid-cols-2 gap-8 animate-pulse">
-              {/* Left Side - Image and Details */}
-              <div className="space-y-8">
-                {/* Image Skeleton */}
-                <div className="w-full aspect-square bg-[#080358]/40 rounded-2xl"></div>
+            <Container>
+              <div className="grid lg:grid-cols-2 gap-8 animate-pulse">
+                {/* Left Side - Image and Details */}
+                <div className="space-y-8">
+                  {/* Image Skeleton */}
+                  <div className="w-full aspect-square bg-[#080358]/40 rounded-2xl"></div>
 
-                {/* Title, Description Section */}
-                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
-                  {/* Title */}
-                  <div className="h-10 bg-[#080358]/40 rounded w-3/4"></div>
+                  {/* Title, Description Section */}
+                  <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
+                    {/* Title */}
+                    <div className="h-10 bg-[#080358]/40 rounded w-3/4"></div>
 
-                  {/* Description Section */}
-                  <div className="space-y-4">
-                    <div className="h-6 bg-[#080358]/40 rounded w-1/3"></div>
-                    <div className="space-y-2">
-                      <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
-                      <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
-                      <div className="h-4 bg-[#080358]/40 rounded w-5/6"></div>
-                      <div className="h-4 bg-[#080358]/40 rounded w-4/5"></div>
-                    </div>
-                  </div>
-
-                  {/* Moderators Section */}
-                  <div className="space-y-4">
-                    <div className="h-6 bg-[#080358]/40 rounded w-1/4"></div>
-                    <div className="flex flex-wrap gap-3 justify-end">
-                      <div className="h-8 bg-[#080358]/40 rounded-full w-24"></div>
-                      <div className="h-8 bg-[#080358]/40 rounded-full w-32"></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Sponsors Section */}
-                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
-                  <div className="h-6 bg-[#080358]/40 rounded w-1/4 mb-4"></div>
-                  <div className="flex flex-wrap gap-3 justify-end">
-                    <div className="h-6 bg-[#080358]/40 rounded w-20"></div>
-                    <div className="h-6 bg-[#080358]/40 rounded w-28"></div>
-                    <div className="h-6 bg-[#080358]/40 rounded w-24"></div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Right Side - Event Info Card */}
-              <div className="lg:col-span-1">
-                <div className="sticky top-24 space-y-6">
-                  {/* Event Info Card */}
-                  <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
-                    <div className="h-6 bg-[#080358]/40 rounded w-1/2 mb-6"></div>
-
+                    {/* Description Section */}
                     <div className="space-y-4">
-                      {/* Date */}
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-3 bg-[#080358]/40 rounded w-20"></div>
-                          <div className="h-5 bg-[#080358]/40 rounded w-32"></div>
-                        </div>
+                      <div className="h-6 bg-[#080358]/40 rounded w-1/3"></div>
+                      <div className="space-y-2">
+                        <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
+                        <div className="h-4 bg-[#080358]/40 rounded w-full"></div>
+                        <div className="h-4 bg-[#080358]/40 rounded w-5/6"></div>
+                        <div className="h-4 bg-[#080358]/40 rounded w-4/5"></div>
                       </div>
+                    </div>
 
-                      {/* Location */}
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
-                        <div className="flex-1 space-y-2">
-                          <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
-                          <div className="h-5 bg-[#080358]/40 rounded w-40"></div>
-                        </div>
-                      </div>
-
-                      {/* Price */}
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <div className="flex-1 space-y-2">
-                          <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
-                          <div className="h-5 bg-[#080358]/40 rounded w-24"></div>
-                        </div>
+                    {/* Moderators Section */}
+                    <div className="space-y-4">
+                      <div className="h-6 bg-[#080358]/40 rounded w-1/4"></div>
+                      <div className="flex flex-wrap gap-3 justify-end">
+                        <div className="h-8 bg-[#080358]/40 rounded-full w-24"></div>
+                        <div className="h-8 bg-[#080358]/40 rounded-full w-32"></div>
                       </div>
                     </div>
                   </div>
 
-                  {/* Register Button */}
-                  <div className="h-14 bg-[#080358]/40 rounded-xl"></div>
+                  {/* Sponsors Section */}
+                  <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+                    <div className="h-6 bg-[#080358]/40 rounded w-1/4 mb-4"></div>
+                    <div className="flex flex-wrap gap-3 justify-end">
+                      <div className="h-6 bg-[#080358]/40 rounded w-20"></div>
+                      <div className="h-6 bg-[#080358]/40 rounded w-28"></div>
+                      <div className="h-6 bg-[#080358]/40 rounded w-24"></div>
+                    </div>
+                  </div>
+                </div>
 
-                  {/* Back Button */}
-                  <div className="h-12 bg-[#080358]/30 rounded-xl border border-white/10"></div>
+                {/* Right Side - Event Info Card */}
+                <div className="lg:col-span-1">
+                  <div className="sticky top-24 space-y-6">
+                    {/* Event Info Card */}
+                    <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 border border-white/10">
+                      <div className="h-6 bg-[#080358]/40 rounded w-1/2 mb-6"></div>
+
+                      <div className="space-y-4">
+                        {/* Date */}
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 bg-[#080358]/40 rounded w-20"></div>
+                            <div className="h-5 bg-[#080358]/40 rounded w-32"></div>
+                          </div>
+                        </div>
+
+                        {/* Location */}
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <div className="w-6 h-6 bg-[#080358]/40 rounded flex-shrink-0"></div>
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
+                            <div className="h-5 bg-[#080358]/40 rounded w-40"></div>
+                          </div>
+                        </div>
+
+                        {/* Price */}
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <div className="flex-1 space-y-2">
+                            <div className="h-3 bg-[#080358]/40 rounded w-16"></div>
+                            <div className="h-5 bg-[#080358]/40 rounded w-24"></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Register Button */}
+                    <div className="h-14 bg-[#080358]/40 rounded-xl"></div>
+
+                    {/* Back Button */}
+                    <div className="h-12 bg-[#080358]/30 rounded-xl border border-white/10"></div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </Container>
+            </Container>
           </div>
         </section>
 
@@ -901,152 +974,128 @@ export default function EventDetailPage() {
       {/* Main Content - Unified Section */}
       <section className="relative bg-gradient-to-b from-[#080358] to-[#0a0440]">
         <div className="py-12 sm:py-16 md:py-20">
-        <Container>
-          <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
-            {/* Left Side - Image and Details */}
-            <div className="space-y-8">
-              {/* Event Image */}
-              <div className="relative w-full aspect-square lg:aspect-[4/3] overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50">
-                {event.image && isValidImageUrl(event.image) && !imageError ? (
-                  <Image
-                    src={event.image}
-                    alt={event.title}
-                    fill
-                    className="object-contain"
-                    onError={() => setImageError(true)}
-                    unoptimized
-                    priority
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
-                    <svg
-                      className="w-16 h-16 text-white/30"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
-                      />
-                    </svg>
-                  </div>
-                )}
-              </div>
-
-              {/* Title, Description and Moderators Section */}
-              <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
-                {/* Title */}
-                <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-right bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
-                  {event.title}
-                </h1>
-
-                {/* Description */}
-                {event.description && (
-                  <div>
-                    <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
-                      درباره رویداد
-                    </h2>
-                    <p
-                      className="text-gray-300 leading-relaxed text-base sm:text-lg whitespace-pre-line text-right text-justify"
-                      dir="rtl"
-                    >
-                      {event.description}
-                    </p>
-                  </div>
-                )}
-
-                {/* Moderators - Only show if moderators exist and have items */}
-                {event.moderators &&
-                  Array.isArray(event.moderators) &&
-                  event.moderators.length > 0 && (
-                    <div>
-                      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
-                        تسهیل‌گران
-                      </h2>
-                      <div className="flex flex-wrap gap-3 justify-end text-right">
-                        {event.moderators.map((moderator, index, arr) => (
-                          <span
-                            key={moderator.id || index}
-                            className="text-white text-base font-medium"
-                          >
-                            {moderator.fullname || moderator.name}
-                            {index < arr.length - 1 && (
-                              <span className="text-gray-500 mx-2">•</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
+          <Container>
+            <div className="grid lg:grid-cols-[2fr_1fr] gap-8">
+              {/* Left Side - Image and Details */}
+              <div className="space-y-8">
+                {/* Event Image */}
+                <div className="relative w-full aspect-square lg:aspect-[4/3] overflow-hidden rounded-2xl bg-gradient-to-br from-gray-800/50 to-gray-900/50">
+                  {event.image &&
+                  isValidImageUrl(event.image) &&
+                  !imageError ? (
+                    <Image
+                      src={event.image}
+                      alt={event.title}
+                      fill
+                      className="object-contain"
+                      onError={() => setImageError(true)}
+                      unoptimized
+                      priority
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 flex items-center justify-center">
+                      <svg
+                        className="w-16 h-16 text-white/30"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                        />
+                      </svg>
                     </div>
                   )}
-              </div>
-
-              {/* Sponsors */}
-              {event.sponsors && event.sponsors.length > 0 && (
-                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
-                  <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
-                    اسپانسرها
-                  </h2>
-                  <div className="flex flex-wrap gap-3 justify-end text-right">
-                    {event.sponsors.map((sponsor, index, arr) => (
-                      <span
-                        key={sponsor.id || index}
-                        className="text-white text-base font-medium"
-                      >
-                        {sponsor.name}
-                        {index < arr.length - 1 && (
-                          <span className="text-gray-500 mx-2">•</span>
-                        )}
-                      </span>
-                    ))}
-                  </div>
                 </div>
-              )}
-            </div>
 
-            {/* Right Side - Event Info Card */}
-            <div className="lg:col-span-1 lg:pt-2">
-              <div className="sticky top-20 space-y-6">
-                {/* Event Info Card */}
-                <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-lg shadow-black/20">
-                  <h3 className="text-xl font-bold mb-6 text-right">
-                    اطلاعات رویداد
-                  </h3>
+                {/* Title, Description and Moderators Section */}
+                <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10 space-y-6">
+                  {/* Title */}
+                  <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-right bg-gradient-to-r from-white via-blue-100 to-purple-200 bg-clip-text text-transparent">
+                    {event.title}
+                  </h1>
 
-                  <div className="space-y-4">
-                    {/* Date */}
-                    {event.startDate && (
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <svg
-                          className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                          />
-                        </svg>
-                        <div className="text-right">
-                          <p className="text-gray-400 text-sm">تاریخ برگزاری</p>
-                          <p className="text-white font-semibold">
-                            {formatDateTime(event.startDate).date}
-                          </p>
+                  {/* Description */}
+                  {event.description && (
+                    <div>
+                      <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
+                        درباره رویداد
+                      </h2>
+                      <p
+                        className="text-gray-300 leading-relaxed text-base sm:text-lg whitespace-pre-line text-right text-justify"
+                        dir="rtl"
+                      >
+                        {event.description}
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Moderators - Only show if moderators exist and have items */}
+                  {event.moderators &&
+                    Array.isArray(event.moderators) &&
+                    event.moderators.length > 0 && (
+                      <div>
+                        <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
+                          تسهیل‌گران
+                        </h2>
+                        <div className="flex flex-wrap gap-3 justify-end text-right">
+                          {event.moderators.map((moderator, index, arr) => (
+                            <span
+                              key={moderator.id || index}
+                              className="text-white text-base font-medium"
+                            >
+                              {moderator.fullname || moderator.name}
+                              {index < arr.length - 1 && (
+                                <span className="text-gray-500 mx-2">•</span>
+                              )}
+                            </span>
+                          ))}
                         </div>
                       </div>
                     )}
+                </div>
 
-                    {/* Time */}
-                    {event.startDate &&
-                      formatDateTime(event.startDate).time && (
+                {/* Sponsors */}
+                {event.sponsors && event.sponsors.length > 0 && (
+                  <div className="bg-gradient-to-br from-[#080358]/60 to-[#0a0440]/60 backdrop-blur-sm rounded-2xl p-6 sm:p-8 border border-white/10">
+                    <h2 className="text-xl sm:text-2xl font-bold mb-4 text-right">
+                      اسپانسرها
+                    </h2>
+                    <div className="flex flex-wrap gap-3 justify-end text-right">
+                      {event.sponsors.map((sponsor, index, arr) => (
+                        <span
+                          key={sponsor.id || index}
+                          className="text-white text-base font-medium"
+                        >
+                          {sponsor.name}
+                          {index < arr.length - 1 && (
+                            <span className="text-gray-500 mx-2">•</span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Right Side - Event Info Card */}
+              <div className="lg:col-span-1 lg:pt-2">
+                <div className="sticky top-20 space-y-6">
+                  {/* Event Info Card */}
+                  <div className="bg-gradient-to-br from-gray-800/40 to-gray-900/40 backdrop-blur-sm rounded-2xl p-6 border border-white/10 shadow-lg shadow-black/20">
+                    <h3 className="text-xl font-bold mb-6 text-right">
+                      اطلاعات رویداد
+                    </h3>
+
+                    <div className="space-y-4">
+                      {/* Date */}
+                      {event.startDate && (
                         <div className="flex items-start gap-3 flex-row-reverse">
                           <svg
-                            className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1"
+                            className="w-6 h-6 text-blue-400 flex-shrink-0 mt-1"
                             fill="none"
                             stroke="currentColor"
                             viewBox="0 0 24 24"
@@ -1055,97 +1104,128 @@ export default function EventDetailPage() {
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
-                              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                             />
                           </svg>
                           <div className="text-right">
                             <p className="text-gray-400 text-sm">
-                              ساعت برگزاری
+                              تاریخ برگزاری
                             </p>
                             <p className="text-white font-semibold">
-                              {formatDateTime(event.startDate).time}
+                              {formatDateTime(event.startDate).date}
                             </p>
                           </div>
                         </div>
                       )}
 
-                    {/* Event Type */}
-                    {event.eventType && (
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <svg
-                          className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          {event.eventType === "online" ? (
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                            />
-                          ) : (
+                      {/* Time */}
+                      {event.startDate &&
+                        formatDateTime(event.startDate).time && (
+                          <div className="flex items-start gap-3 flex-row-reverse">
+                            <svg
+                              className="w-6 h-6 text-gray-300 flex-shrink-0 mt-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                              />
+                            </svg>
+                            <div className="text-right">
+                              <p className="text-gray-400 text-sm">
+                                ساعت برگزاری
+                              </p>
+                              <p className="text-white font-semibold">
+                                {formatDateTime(event.startDate).time}
+                              </p>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Event Type */}
+                      {event.eventType && (
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <svg
+                            className="w-6 h-6 text-cyan-400 flex-shrink-0 mt-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            {event.eventType === "online" ? (
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                              />
+                            ) : (
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                              />
+                            )}
+                          </svg>
+                          <div className="text-right">
+                            <p className="text-gray-400 text-sm">نوع رویداد</p>
+                            <p className="text-white font-semibold">
+                              {event.eventType === "online"
+                                ? "آنلاین"
+                                : "حضوری"}
+                            </p>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Location & Vicinity - Only show for physical events */}
+                      {event.vicinity && event.eventType !== "online" && (
+                        <div className="flex items-start gap-3 flex-row-reverse">
+                          <svg
+                            className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
                             <path
                               strokeLinecap="round"
                               strokeLinejoin="round"
                               strokeWidth={2}
                               d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
                             />
-                          )}
-                        </svg>
-                        <div className="text-right">
-                          <p className="text-gray-400 text-sm">نوع رویداد</p>
-                          <p className="text-white font-semibold">
-                            {event.eventType === "online" ? "آنلاین" : "حضوری"}
-                          </p>
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                            />
+                          </svg>
+                          <div className="text-right">
+                            <p className="text-gray-400 text-sm">محدوده</p>
+                            <p className="text-white font-semibold">
+                              {event.vicinity}
+                            </p>
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
 
-                    {/* Location & Vicinity - Only show for physical events */}
-                    {event.vicinity && event.eventType !== "online" && (
-                      <div className="flex items-start gap-3 flex-row-reverse">
-                        <svg
-                          className="w-6 h-6 text-purple-400 flex-shrink-0 mt-1"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                          />
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                          />
-                        </svg>
-                        <div className="text-right">
-                          <p className="text-gray-400 text-sm">محدوده</p>
-                          <p className="text-white font-semibold">
-                            {event.vicinity}
-                          </p>
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Price */}
-                    {((event.tickets &&
-                      event.tickets.length > 0 &&
-                      event.tickets[0]?.price !== undefined &&
-                      event.tickets[0]?.price !== null) ||
-                      event.paymentType ||
-                      event.payment_type) && (
+                      {/* Price */}
+                      {((event.tickets &&
+                        event.tickets.length > 0 &&
+                        event.tickets[0]?.price !== undefined &&
+                        event.tickets[0]?.price !== null) ||
+                        event.paymentType ||
+                        event.payment_type) && (
                         <div className="flex items-start gap-3 flex-row-reverse">
                           <div className="text-right">
                             <p className="text-gray-400 text-sm">هزینه</p>
                             <p className="text-white font-semibold font-vazirmatn">
-                              {(event.paymentType || event.payment_type) === "free" ||
+                              {(event.paymentType || event.payment_type) ===
+                                "free" ||
                               (event.tickets &&
                                 event.tickets.length > 0 &&
                                 event.tickets[0]?.price === 0)
@@ -1162,66 +1242,79 @@ export default function EventDetailPage() {
                         </div>
                       )}
 
-                    {/* Capacity Full Message */}
-                    {event.tickets &&
-                      event.tickets.length > 0 &&
-                      event.tickets[0]?.isAvailable === false && (
-                        <div className="flex items-start gap-3 flex-row-reverse pt-4 border-t border-white/10">
-                          <div className="text-right">
-                            <p className="text-red-400 text-sm font-semibold">
-                              ظرفیت پر شده
-                            </p>
+                      {/* Capacity Full Message */}
+                      {event.tickets &&
+                        event.tickets.length > 0 &&
+                        event.tickets[0]?.isAvailable === false && (
+                          <div className="flex items-start gap-3 flex-row-reverse pt-4 border-t border-white/10">
+                            <div className="text-right">
+                              <p className="text-red-400 text-sm font-semibold">
+                                ظرفیت پر شده
+                              </p>
+                            </div>
                           </div>
-                        </div>
-                      )}
+                        )}
+                    </div>
                   </div>
+
+                  {/* Register Button */}
+                  {isEventCompleted ? (
+                    <button
+                      disabled
+                      className="w-full bg-gray-700 text-gray-300 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
+                    >
+                      این رویداد به اتمام رسیده است
+                    </button>
+                  ) : event.tickets &&
+                    event.tickets.length > 0 &&
+                    event.tickets[0]?.isAvailable === false ? (
+                    <button
+                      disabled
+                      className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
+                    >
+                      ثبت نام در رویداد
+                    </button>
+                  ) : hasPurchased ? (
+                    <button
+                      disabled
+                      className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
+                    >
+                      شما قبلا این ایونت رو تهیه کردید
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRegister}
+                      disabled={orderLoading}
+                      className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-[#f84920]/20 disabled:opacity-60 text-sm"
+                    >
+                      {orderLoading ? "در حال ثبت..." : "ثبت نام در رویداد"}
+                    </button>
+                  )}
+
+                  {/* Refresh Button - Only for Admin */}
+                  {isAdmin && (
+                    <button
+                      onClick={() => fetchEventDetail(true)}
+                      disabled={loading}
+                      className="w-full border border-blue-500/50 hover:border-blue-400 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 text-sm disabled:opacity-50"
+                    >
+                      {loading
+                        ? "در حال به‌روزرسانی..."
+                        : "🔄 به‌روزرسانی داده‌ها"}
+                    </button>
+                  )}
+
+                  {/* Back Button */}
+                  <button
+                    onClick={() => router.back()}
+                    className="w-full border border-white/20 hover:border-white/40 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 text-sm"
+                  >
+                    بازگشت
+                  </button>
                 </div>
-
-                {/* Register Button */}
-                {isEventCompleted ? (
-                  <button
-                    disabled
-                    className="w-full bg-gray-700 text-gray-300 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
-                  >
-                    این رویداد به اتمام رسیده است
-                  </button>
-                ) : event.tickets &&
-                  event.tickets.length > 0 &&
-                  event.tickets[0]?.isAvailable === false ? (
-                  <button
-                    disabled
-                    className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
-                  >
-                    ثبت نام در رویداد
-                  </button>
-                ) : hasPurchased ? (
-                  <button
-                    disabled
-                    className="w-full bg-gray-700 text-gray-400 font-bold py-3 px-6 rounded-xl cursor-not-allowed text-sm"
-                  >
-                    شما قبلا این ایونت رو تهیه کردید
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleRegister}
-                    disabled={orderLoading}
-                    className="w-full bg-[#f84920] hover:bg-[#e63e1a] text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-[#f84920]/20 disabled:opacity-60 text-sm"
-                  >
-                    {orderLoading ? "در حال ثبت..." : "ثبت نام در رویداد"}
-                  </button>
-                )}
-
-                {/* Back Button */}
-                <button
-                  onClick={() => router.back()}
-                  className="w-full border border-white/20 hover:border-white/40 text-white font-semibold py-2.5 px-6 rounded-xl transition-all duration-300 text-sm"
-                >
-                  بازگشت
-                </button>
               </div>
             </div>
-          </div>
-        </Container>
+          </Container>
         </div>
       </section>
 

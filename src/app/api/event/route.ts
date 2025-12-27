@@ -4,8 +4,11 @@ import { API_CONFIG } from "@/config/api";
 // Cache the events list for 10 minutes. Landing page data is not realtime.
 export const revalidate = 600;
 
-export async function GET(_request: NextRequest) {
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const refresh = searchParams.get("refresh") === "true" || searchParams.get("nocache") === "true";
+    
     const backendUrl = `${API_CONFIG.BASE_URL}/event`;
 
     const res = await fetch(backendUrl, {
@@ -14,9 +17,13 @@ export async function GET(_request: NextRequest) {
         "Content-Type": "application/json",
         Accept: "application/json",
       },
-      // Do not forward credentials for public events
-      next: { revalidate: 600 },
-      cache: "force-cache",
+      // Bypass cache if refresh parameter is present
+      ...(refresh
+        ? { cache: "no-store" }
+        : {
+            next: { revalidate: 600 },
+            cache: "force-cache",
+          }),
     });
 
     const text = await res.text();
@@ -52,10 +59,18 @@ export async function GET(_request: NextRequest) {
     }
 
     const response = NextResponse.json({ success: true, events: eventsArray });
-    response.headers.set(
-      "Cache-Control",
-      "s-maxage=600, stale-while-revalidate=60"
-    );
+    
+    // Only set cache headers if not refreshing
+    if (!refresh) {
+      response.headers.set(
+        "Cache-Control",
+        "s-maxage=600, stale-while-revalidate=60"
+      );
+    } else {
+      // No cache for refresh requests
+      response.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    }
+    
     return response;
   } catch (e) {
     return NextResponse.json(

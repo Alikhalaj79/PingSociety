@@ -5,18 +5,26 @@ import { API_CONFIG } from "@/config/api";
 export const revalidate = 600;
 
 export async function GET(
-  _req: NextRequest,
+  request: NextRequest,
   context: { params: Promise<{ id: string }> }
 ) {
   const { id: eventId } = await context.params; // 💡 مهم: باید await کنیم
+  
+  const searchParams = request.nextUrl.searchParams;
+  const refresh = searchParams.get("refresh") === "true" || searchParams.get("nocache") === "true";
 
   const backendUrl = `${API_CONFIG.BASE_URL}/event/${eventId}`;
 
   try {
     const response = await fetch(backendUrl, {
       headers: { Accept: "application/json" },
-      next: { revalidate: 600 },
-      cache: "force-cache",
+      // Bypass cache if refresh parameter is present
+      ...(refresh
+        ? { cache: "no-store" }
+        : {
+            next: { revalidate: 600 },
+            cache: "force-cache",
+          }),
     });
 
     if (!response.ok) {
@@ -50,10 +58,18 @@ export async function GET(
     }
 
     const res = NextResponse.json({ success: true, event });
-    res.headers.set(
-      "Cache-Control",
-      "s-maxage=600, stale-while-revalidate=60"
-    );
+    
+    // Only set cache headers if not refreshing
+    if (!refresh) {
+      res.headers.set(
+        "Cache-Control",
+        "s-maxage=600, stale-while-revalidate=60"
+      );
+    } else {
+      // No cache for refresh requests
+      res.headers.set("Cache-Control", "no-store, no-cache, must-revalidate");
+    }
+    
     return res;
   } catch (error) {
     console.error("Error fetching event details:", error);

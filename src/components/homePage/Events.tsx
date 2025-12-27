@@ -41,12 +41,31 @@ export default function Events() {
       setLoading(true);
       setError(null);
 
+      // Check if refresh parameter is in URL
+      const shouldRefresh = typeof window !== "undefined" && 
+        (new URLSearchParams(window.location.search).get("refresh") === "true" ||
+         new URLSearchParams(window.location.search).get("nocache") === "true");
+
       // Use Next.js API proxy to avoid CORS/mixed-content
-      const res = await fetch("/api/event", {
+      // Add timestamp to bypass browser cache when refreshing
+      const url = shouldRefresh 
+        ? `/api/event?refresh=true&_t=${Date.now()}`
+        : "/api/event";
+      
+      const res = await fetch(url, {
         method: "GET",
-        // Let Next.js cache this response via the API route (ISR)
-        cache: "force-cache",
-        next: { revalidate: 600 },
+        // Bypass cache if refresh parameter is present
+        ...(shouldRefresh
+          ? { 
+              cache: "no-store",
+              headers: {
+                "Cache-Control": "no-cache, no-store, must-revalidate",
+                "Pragma": "no-cache",
+              }
+            }
+          : {
+              cache: "default",
+            }),
       });
       const json = await res.json();
       if (res.ok && json?.success) {
