@@ -907,13 +907,13 @@ export default function OverviewTab({
                                 )}
                                 {isOnlineEvent && (
                                   <a
-                                    href="https://meet.google.com/nmu-mgxh-ify"
+                                    href="https://fanotech.ir/ujug3"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     onClick={(e) => e.stopPropagation()}
                                     className="bg-[#F84920] hover:bg-[#e63e1a] text-white px-4 py-2 rounded-lg transition-all font-semibold text-sm whitespace-nowrap flex items-center gap-2"
                                   >
-                                    لینک گوگل میت
+                                    لینک ورود به جلسه
                                   </a>
                                 )}
                                 <button
