@@ -37,7 +37,7 @@ const result = await apiService.verifyOtp({
 
 API configuration is managed in `src/config/api.ts`:
 
-- Base URL: `https://api.pingsociety.ir`
+- Base URL: ``
 - Timeout: 10 seconds
 - Default headers for JSON requests
 

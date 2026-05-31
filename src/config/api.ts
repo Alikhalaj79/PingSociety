@@ -1,6 +1,6 @@
 // API Configuration
 export const API_CONFIG = {
-  BASE_URL: process.env.NEXT_PUBLIC_API_URL || "https://api.pingsociety.ir",
+  BASE_URL: process.env.NEXT_PUBLIC_API_URL ,
   TIMEOUT: 10000,
   HEADERS: {
     "Content-Type": "application/json",
@@ -36,7 +36,7 @@ export const API_ENDPOINTS = {
 export const ENV = {
   IS_DEVELOPMENT: process.env.NODE_ENV === "development",
   IS_PRODUCTION: process.env.NODE_ENV === "production",
-  API_URL: process.env.NEXT_PUBLIC_API_URL || "https://api.pingsociety.ir",
+  API_URL: process.env.NEXT_PUBLIC_API_URL ,
 } as const;
 
 // Helper functions
